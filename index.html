@@ -2,41 +2,74 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的第一个免费网站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人主页</title>
     
     <style>
+        /* 1. 整体页面背景变灰，保护视力 */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 40px auto;
-            max-width: 900px;
-            padding: 0 20px;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f7f9fc; 
+            margin: 0;
+            padding: 40px 20px;
             color: #333;
+            display: flex;
+            justify-content: center; /* 让卡片居中 */
         }
+
+        /* 2. 创建一个“卡片”容器，限制宽度 */
+        .card {
+            background-color: white;
+            max-width: 700px; /* 限制最大宽度，不让评论框太长 */
+            width: 100%;
+            padding: 40px;
+            border-radius: 16px; /* 圆角看起来更舒服 */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* 加一点阴影，更有立体感 */
+        }
+
         h1 {
-            color: #1a1a1a;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            color: #2c3e50;
+            margin-top: 0;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 15px;
         }
+
+        p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        /* 3. 评论区样式调整 */
         #cusdis_thread {
-            margin-top: 50px;
+            margin-top: 30px;
+            min-height: 300px; /* 给评论区预留一点高度 */
         }
     </style>
-    
 </head>
 <body>
-    
-    <h1>欢迎来到我的 GitHub Pages!</h1>
-    <p>这里将是我的图片和学术分享空间！设置成功！</p>
-    
-    <div id="cusdis_thread"
-        data-host="https://cusdis.com"
-        data-app-id="98c24430f833" 
-        data-page-id="{{ PAGE_ID }}"
-        data-page-url="{{ PAGE_URL }}"
-        data-page-title="{{ PAGE_TITLE }}"
-    ></div>
-    <script async defer src="https://cusdis.com/js/cusdis-es.js"></script>
+
+    <div class="card">
+        <h1>👋 欢迎来到我的 GitHub Pages!</h1>
+        <p>
+            这里是我的个人空间。我会在这里分享喜欢的图片、可爱的动物以及学术笔记。
+            <br>
+            网站正在建设中，欢迎在下方留言测试！
+        </p>
+
+        <h3>📝 留言板</h3>
+        <div id="cusdis_thread"
+            data-host="https://cusdis.com"
+            data-app-id="9afb3450-f9c5-4103-986d-9ac244304d33"
+            data-page-id="homepage"
+            data-page-url="https://blynhilder.github.io"
+            data-page-title="Home"
+            data-theme="light"
+        ></div>
+    </div>
+
+    <script defer src="https://cusdis.com/js/cusdis.es.js"></script>
 
 </body>
 </html>
