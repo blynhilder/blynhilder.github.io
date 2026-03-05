@@ -1,0 +1,15 @@
+name: Link Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Basic sanity
+        run: |
+          test -f README.md
+          test -f INDEX.md
+          echo "Basic files exist."
