@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C++ 入门知识库</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #0b1720; color: #e7f4ff; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 60px; }
+    .top { display:flex; justify-content: space-between; align-items:center; gap:10px; flex-wrap: wrap; }
+    a { color:#68d6ff; }
+    .search-box { margin: 18px 0 24px; display:grid; gap:10px; }
+    input { padding: 12px; border-radius: 10px; border: 1px solid #2f586c; background:#102736; color:#e7f4ff; }
+    .hint { color:#9fc2d7; font-size: 14px; }
+    .results, .articles { display:grid; gap:12px; }
+    .card { border:1px solid #2e5e76; border-radius: 12px; background:#0f2431; padding:14px; }
+    .card h3 { margin:0 0 8px; }
+    .tags { color:#8bd7ff; font-size: 13px; }
+    .article h2 { border-bottom:1px solid #2e5e76; padding-bottom:8px; margin-top:22px; }
+    pre { background:#08131b; border:1px solid #2d5365; border-radius:8px; padding:10px; overflow:auto; }
+    code { color:#9be6ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <h1>C++ 入门知识库</h1>
+      <a href="index.html">← 返回首页</a>
+    </div>
+
+    <section class="search-box">
+      <input id="q" type="search" placeholder="搜索关键词：如 vector、函数、RAII、循环" />
+      <div class="hint">支持按标题、摘要、标签、正文搜索（纯前端，无后端）。</div>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="articles article">
+      <h2 id="cpp-what-is">1) C++ 是什么？</h2>
+      <p>C++ 是一种高性能通用语言，广泛用于系统、游戏、图形、嵌入式等方向。建议从语法基础 -> STL -> 面向对象 -> 现代 C++（C++11/14/17/20）逐步推进。</p>
+
+      <h2 id="cpp-variables-types">2) 变量与基本类型</h2>
+      <p>常见类型：<code>int</code>、<code>double</code>、<code>char</code>、<code>bool</code>、<code>std::string</code>。尽量在定义时初始化，使用 <code>const</code> 表示不可修改。</p>
+      <pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+int main() {
+  int age = 18;
+  const double pi = 3.14159;
+  std::string name = "Alice";
+  std::cout &lt;&lt; name &lt;&lt; " " &lt;&lt; age &lt;&lt; " " &lt;&lt; pi &lt;&lt; "\n";
+}</code></pre>
+
+      <h2 id="cpp-control-flow">3) 条件与循环</h2>
+      <p>分支：<code>if/else</code>、<code>switch</code>；循环：<code>for</code>、<code>while</code>。建议先写清楚业务条件，再优化结构。</p>
+
+      <h2 id="cpp-functions">4) 函数与参数传递</h2>
+      <p>函数有返回值与参数列表。值传递会复制，引用传递更高效；只读参数可用 <code>const &amp;</code>。</p>
+      <pre><code>int add(int a, int b) { return a + b; }
+void printName(const std::string&amp; name) {
+  std::cout &lt;&lt; name &lt;&lt; "\n";
+}</code></pre>
+
+      <h2 id="cpp-stl-vector">5) STL 入门：vector</h2>
+      <p><code>std::vector</code> 是动态数组，支持自动扩容。</p>
+      <pre><code>#include &lt;vector&gt;
+std::vector&lt;int&gt; nums{1,2,3};
+nums.push_back(4);
+for (int x : nums) {
+  // use x
+}</code></pre>
+
+      <h2 id="cpp-memory-raii">6) 内存管理与 RAII</h2>
+      <p>RAII 是现代 C++ 核心思想。优先使用对象和智能指针管理资源，减少手动 <code>new/delete</code> 的风险。</p>
+    </section>
+  </main>
+
+  <script>
+    const q = document.getElementById('q');
+    const results = document.getElementById('results');
+    let entries = [];
+
+    function render(list, keyword) {
+      if (!keyword) {
+        results.innerHTML = '<div class="hint">输入关键词开始搜索。</div>';
+        return;
+      }
+      if (list.length === 0) {
+        results.innerHTML = '<div class="card">没有找到结果，试试更短的关键词或英文标签（如 stl / vector）。</div>';
+        return;
+      }
+      results.innerHTML = list.map(item => `
+        <article class="card">
+          <h3><a href="${item.url}">${item.title}</a></h3>
+          <p>${item.summary}</p>
+          <div class="tags">标签：${item.tags.join(', ')}</div>
+        </article>
+      `).join('');
+    }
+
+    function search(keyword) {
+      const k = keyword.trim().toLowerCase();
+      if (!k) return [];
+      return entries.filter(item => {
+        const haystack = [item.title, item.summary, item.content, ...(item.tags || [])]
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(k);
+      });
+    }
+
+    fetch('knowledge/index.json')
+      .then(r => r.json())
+      .then(data => {
+        entries = data;
+        const initial = new URLSearchParams(location.search).get('q') || '';
+        q.value = initial;
+        render(search(initial), initial);
+      })
+      .catch(() => {
+        results.innerHTML = '<div class="card">知识库索引加载失败，请确认通过 HTTP 服务访问（而不是 file://）。</div>';
+      });
+
+    q.addEventListener('input', () => {
+      render(search(q.value), q.value);
+    });
+  </script>
+</body>
+</html>

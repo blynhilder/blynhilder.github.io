@@ -53,6 +53,19 @@ git push origin <your-branch>
 - `hotfix/<name>`：线上紧急修复
 - `release/<version>`：发布整理
 
+
+## 新增：C++ 入门知识库 + 搜索
+
+- 新增页面：`knowledge.html`
+- 新增索引：`knowledge/index.json`
+- 功能：纯前端搜索（按标题/摘要/标签/正文关键字匹配）
+
+使用方式：
+
+1. 进入 `knowledge.html`
+2. 在搜索框输入关键词（例如：`vector`、`RAII`、`函数`）
+3. 点击结果可跳转到对应知识点锚点
+
 ## 仓库规范文件
 
 - [贡献指南](CONTRIBUTING.md)
