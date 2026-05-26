@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>给 Jason 的小惊喜</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f8fbff;
+      --muted: #c7d2e8;
+      --gold: #ffd36a;
+      --coral: #ff7f6e;
+      --mint: #80f0c9;
+      --sky: #88c5ff;
+      --bg0: #08111f;
+      --bg1: #14233f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Inter, "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 211, 106, .2), transparent 28%),
+        radial-gradient(circle at 82% 30%, rgba(128, 240, 201, .16), transparent 30%),
+        linear-gradient(135deg, var(--bg0), var(--bg1) 58%, #241538);
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    main {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .message {
+      width: min(850px, 94vw);
+    }
+
+    .kicker {
+      margin: 0 0 18px;
+      color: var(--gold);
+      font-size: clamp(14px, 2vw, 18px);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(44px, 9vw, 108px);
+      line-height: .94;
+      letter-spacing: 0;
+      text-wrap: balance;
+      text-shadow: 0 18px 70px rgba(0, 0, 0, .55);
+    }
+
+    .line {
+      display: block;
+    }
+
+    .line:nth-child(2) {
+      color: var(--mint);
+    }
+
+    p {
+      width: min(650px, 100%);
+      margin: 26px auto 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2.5vw, 23px);
+      line-height: 1.65;
+      text-wrap: balance;
+    }
+
+    button {
+      appearance: none;
+      margin-top: 34px;
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 999px;
+      padding: 13px 19px;
+      color: #08111f;
+      background: linear-gradient(90deg, var(--gold), var(--coral), var(--sky));
+      box-shadow: 0 16px 42px rgba(0, 0, 0, .35);
+      cursor: pointer;
+      font: 700 15px/1 system-ui, sans-serif;
+    }
+
+    .note {
+      position: fixed;
+      right: 18px;
+      bottom: 14px;
+      z-index: 3;
+      color: rgba(248, 251, 255, .58);
+      font-size: 13px;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        overflow: auto;
+      }
+
+      main {
+        min-height: 100svh;
+      }
+
+      .note {
+        position: static;
+        margin: -36px 18px 14px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <main>
+    <section class="message" aria-label="surprise message">
+      <p class="kicker">Chrome opened a tiny pocket universe</p>
+      <h1>
+        <span class="line">今天也要</span>
+        <span class="line">闪闪发光</span>
+      </h1>
+      <p>
+        这是一个只在你这台电脑上短暂停留的小宇宙。点一下按钮，给今天加一点不讲道理的好运。
+      </p>
+      <button id="burst">放一场好运烟花</button>
+    </section>
+  </main>
+  <div class="note">Made locally, just for this tab.</div>
+
+  <script>
+    const canvas = document.querySelector("#sky");
+    const ctx = canvas.getContext("2d");
+    const button = document.querySelector("#burst");
+    const colors = ["#ffd36a", "#ff7f6e", "#80f0c9", "#88c5ff", "#f8fbff"];
+    let width = 0;
+    let height = 0;
+    let particles = [];
+    let pointer = { x: innerWidth / 2, y: innerHeight / 2 };
+
+    function resize() {
+      const scale = Math.min(devicePixelRatio || 1, 2);
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = Math.floor(width * scale);
+      canvas.height = Math.floor(height * scale);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    }
+
+    function addBurst(x, y, amount = 130) {
+      for (let i = 0; i < amount; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 7.5;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 70 + Math.random() * 45,
+          age: 0,
+          size: 1.2 + Math.random() * 3.8,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+    }
+
+    function addDrift() {
+      if (particles.length < 360) {
+        particles.push({
+          x: Math.random() * width,
+          y: height + 20,
+          vx: (Math.random() - .5) * .4,
+          vy: -(.25 + Math.random() * .85),
+          life: 240 + Math.random() * 160,
+          age: 0,
+          size: .8 + Math.random() * 2.2,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      const glow = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 260);
+      glow.addColorStop(0, "rgba(255,255,255,.16)");
+      glow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, width, height);
+
+      addDrift();
+      particles = particles.filter((p) => p.age < p.life);
+      for (const p of particles) {
+        p.age += 1;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += .018;
+        p.vx *= .992;
+        const alpha = Math.max(0, 1 - p.age / p.life);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (0.6 + alpha), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(draw);
+    }
+
+    addEventListener("resize", resize);
+    addEventListener("pointermove", (event) => {
+      pointer = { x: event.clientX, y: event.clientY };
+    });
+    addEventListener("click", (event) => {
+      if (event.target !== button) addBurst(event.clientX, event.clientY, 55);
+    });
+    button.addEventListener("click", () => {
+      addBurst(width / 2, height * .42, 230);
+      button.textContent = "好运已到账";
+      setTimeout(() => {
+        button.textContent = "再来一场";
+      }, 1300);
+    });
+
+    resize();
+    addBurst(width / 2, height * .42, 180);
+    draw();
+  </script>
+</body>
+</html>
