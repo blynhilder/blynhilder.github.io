@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cpp-what-is",
+    "title": "C++ 是什么？",
+    "tags": ["cpp", "intro", "history"],
+    "summary": "了解 C++ 的定位、应用场景和学习路径。",
+    "content": "C++ 是一种通用编程语言，兼具高性能和抽象能力，常用于系统开发、游戏引擎、图形渲染、嵌入式和高频交易等场景。建议从语法基础、STL、面向对象、现代 C++ 特性逐步学习。",
+    "url": "knowledge.html#cpp-what-is"
+  },
+  {
+    "id": "cpp-variables-types",
+    "title": "变量与基本类型",
+    "tags": ["cpp", "basics", "types"],
+    "summary": "掌握 int/double/char/bool/string 及 const 概念。",
+    "content": "C++ 常见基本类型有 int、double、char、bool。字符串通常使用 std::string。const 用于声明不可修改变量。使用有意义的变量名并尽量在初始化时赋值。",
+    "url": "knowledge.html#cpp-variables-types"
+  },
+  {
+    "id": "cpp-control-flow",
+    "title": "条件与循环",
+    "tags": ["cpp", "if", "loop"],
+    "summary": "if/else、switch、for、while 的实用入门。",
+    "content": "控制流是程序逻辑核心。if/else 用于条件分支，switch 适合离散常量分支，for 和 while 用于重复执行任务。优先写清晰逻辑，避免过度嵌套。",
+    "url": "knowledge.html#cpp-control-flow"
+  },
+  {
+    "id": "cpp-functions",
+    "title": "函数与参数传递",
+    "tags": ["cpp", "function", "reference"],
+    "summary": "学习函数拆分、返回值、值传递与引用传递。",
+    "content": "函数可提高复用性和可读性。值传递会复制参数，引用传递使用 & 可避免复制并支持修改实参。只读参数可用 const 引用提升性能。",
+    "url": "knowledge.html#cpp-functions"
+  },
+  {
+    "id": "cpp-stl-vector",
+    "title": "STL 入门：vector",
+    "tags": ["cpp", "stl", "vector"],
+    "summary": "理解动态数组 vector 的常见操作。",
+    "content": "std::vector 是最常用容器之一，支持动态扩容。常见操作包括 push_back、size、empty、遍历和下标访问。遍历时可使用范围 for 循环。",
+    "url": "knowledge.html#cpp-stl-vector"
+  },
+  {
+    "id": "cpp-memory-raii",
+    "title": "内存管理与 RAII",
+    "tags": ["cpp", "memory", "raii"],
+    "summary": "理解为什么现代 C++ 推荐智能指针与 RAII。",
+    "content": "RAII 指资源获取即初始化，通过对象生命周期管理资源。现代 C++ 推荐使用 std::unique_ptr 和 std::shared_ptr，减少手动 new/delete 导致的泄漏风险。",
+    "url": "knowledge.html#cpp-memory-raii"
+  }
+]
