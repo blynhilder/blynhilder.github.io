@@ -1,461 +1,381 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosmic Geometry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#02070c">
+  <meta name="description" content="Cosmic Geometry 鈥?a spatial, motion-led frontend showcase built for stars, shapes, and motion.">
+  <title>Cosmic Geometry 鈥?Built for Stars, Shapes, and Motion</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
   <style>
     :root {
-      --bg: #04131d;
-      --bg-soft: #0d2431;
-      --ink: #edf7ff;
-      --muted: #9ab4c7;
-      --line: rgba(120, 195, 242, 0.28);
-      --aqua: #39c8ff;
-      --mint: #52f0d6;
-      --amber: #ffc766;
+      --bg: #02070c;
+      --surface: rgba(8, 24, 37, .66);
+      --surface-heavy: rgba(9, 29, 44, .78);
+      --ink: #f5f7fa;
+      --muted: #a7b6c4;
+      --cyan: #6ee7ff;
+      --aqua: #42e5df;
+      --line: rgba(145, 213, 244, .24);
+      --page-progress: 0;
+      --hero-progress: 0;
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      font-synthesis: none;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--bg); color: var(--ink); }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
 
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(1200px 800px at 15% -20%, rgba(57, 200, 255, 0.2), transparent 60%),
-        radial-gradient(1100px 700px at 100% 10%, rgba(82, 240, 214, 0.14), transparent 62%),
-        linear-gradient(165deg, #020b11, var(--bg));
-      color: var(--ink);
-      font-family: "Space Grotesk", sans-serif;
-      overflow-x: hidden;
-    }
-
-    canvas#stars {
+    .scroll-progress {
       position: fixed;
-      inset: 0;
-      z-index: -3;
-      opacity: 0.95;
+      z-index: 100;
+      top: 0;
+      left: 0;
+      width: calc(var(--page-progress) * 100%);
+      height: 2px;
+      background: var(--cyan);
+      box-shadow: 0 0 18px rgba(110, 231, 255, .75);
     }
 
-    .grid-overlay {
+    .nav-wrap {
       position: fixed;
-      inset: 0;
-      z-index: -2;
-      background-image:
-        linear-gradient(var(--line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: 70px 70px;
-      mask-image: radial-gradient(circle at center, black 40%, transparent 95%);
-      opacity: 0.26;
-      animation: drift 20s linear infinite;
+      z-index: 90;
+      top: 24px;
+      left: 50%;
+      width: min(512px, calc(100% - 36px));
+      transform: translateX(-50%);
     }
 
-    .glow-orb {
-      position: fixed;
-      width: 440px;
-      height: 440px;
-      border-radius: 50%;
-      filter: blur(70px);
-      z-index: -1;
-      opacity: 0.32;
-      pointer-events: none;
-    }
-
-    .orb-a {
-      top: -130px;
-      left: -110px;
-      background: #20c4ff;
-      animation: orbA 16s ease-in-out infinite;
-    }
-
-    .orb-b {
-      bottom: -170px;
-      right: -140px;
-      background: #32f3cb;
-      animation: orbB 14s ease-in-out infinite;
-    }
-
-    .shell {
-      width: min(1100px, 92vw);
-      margin: 42px auto;
-      border: 1px solid rgba(122, 194, 233, 0.32);
-      border-radius: 24px;
-      background: linear-gradient(160deg, rgba(10, 25, 35, 0.78), rgba(6, 16, 24, 0.78));
-      backdrop-filter: blur(8px);
-      box-shadow:
-        0 0 0 1px rgba(156, 235, 255, 0.08),
-        0 18px 55px rgba(3, 12, 18, 0.55);
-      overflow: hidden;
-    }
-
-    header {
-      padding: 28px 32px;
+    .nav-shell {
+      min-height: 56px;
+      padding: 8px 10px 8px 22px;
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(138, 210, 241, 0.2);
-    }
-
-    .brand {
-      font-family: "Orbitron", sans-serif;
-      letter-spacing: 1.4px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #d9f6ff;
-      text-transform: uppercase;
-    }
-
-    .tag {
-      border: 1px solid rgba(255, 199, 102, 0.5);
-      color: var(--amber);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      font-weight: 700;
-      background: rgba(255, 199, 102, 0.08);
-    }
-
-    .hero {
-      padding: 56px 32px 34px;
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 28px;
-      align-items: center;
-    }
-
-    .hero h1 {
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(2rem, 4.2vw, 3.6rem);
-      line-height: 1.1;
-      letter-spacing: 1.1px;
-      margin-bottom: 16px;
-      text-transform: uppercase;
-    }
-
-    .hero p {
-      color: var(--muted);
-      line-height: 1.8;
-      max-width: 58ch;
-      margin-bottom: 24px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      text-decoration: none;
-      color: #00131d;
-      background: linear-gradient(135deg, var(--aqua), var(--mint));
-      padding: 11px 16px;
-      border-radius: 10px;
-      font-weight: 700;
-      transition: transform .16s ease, box-shadow .2s ease;
-      box-shadow: 0 10px 25px rgba(51, 184, 228, 0.28);
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn.secondary {
-      background: transparent;
-      border: 1px solid rgba(83, 201, 240, 0.48);
-      color: #c8f3ff;
-      box-shadow: none;
-    }
-
-    .geo-card {
-      border: 1px solid rgba(121, 199, 236, 0.35);
+      border: 1px solid rgba(163, 220, 247, .29);
+      border-top-color: rgba(215, 242, 255, .42);
       border-radius: 16px;
-      padding: 22px;
-      background: linear-gradient(145deg, rgba(12, 34, 47, 0.78), rgba(7, 23, 34, 0.78));
-      position: relative;
-      overflow: hidden;
-      min-height: 270px;
+      background: rgba(6, 19, 30, .62);
+      backdrop-filter: blur(18px) saturate(145%);
+      -webkit-backdrop-filter: blur(18px) saturate(145%);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .26);
     }
 
-    .geo-card::before,
-    .geo-card::after {
+    .brand { font-size: .97rem; font-weight: 650; letter-spacing: -.02em; }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .nav-repo {
+      min-height: 38px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(190, 226, 242, .25);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .055);
+      font-size: .78rem;
+      font-weight: 620;
+      transition: transform 120ms ease-out, background 180ms ease;
+    }
+    .nav-repo:hover { background: rgba(255, 255, 255, .11); }
+    .nav-repo:active { transform: scale(.96); }
+    .nav-signal { display: grid; place-items: center; width: 34px; height: 34px; color: var(--cyan); font-size: .75rem; }
+
+    main { position: relative; }
+    .hero {
+      position: relative;
+      min-height: 790px;
+      padding: 190px max(7vw, 48px) 120px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero-media {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: translate3d(0, calc(var(--hero-progress) * 70px), 0) scale(calc(1 + var(--hero-progress) * .08));
+      transform-origin: 58% 60%;
+      will-change: transform;
+    }
+
+    .hero-layout {
+      position: relative;
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 580px) minmax(390px, 470px);
+      justify-content: space-between;
+      gap: clamp(48px, 6vw, 92px);
+      align-items: center;
+    }
+
+    .hero-copy {
+      transform: translate3d(0, calc(28px + var(--hero-progress) * -54px), 0);
+      opacity: calc(1 - var(--hero-progress) * 1.15);
+      will-change: transform, opacity;
+    }
+
+    .eyebrow {
+      margin: 0 0 20px;
+      color: var(--cyan);
+      font-size: .7rem;
+      line-height: 1;
+      font-weight: 750;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(3.55rem, 5vw, 4.75rem);
+      line-height: 1.06;
+      letter-spacing: -.055em;
+      font-weight: 600;
+      text-wrap: balance;
+    }
+
+    .lede {
+      max-width: 500px;
+      margin: 25px 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.3vw, 1.12rem);
+      line-height: 1.68;
+      letter-spacing: -.012em;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .button {
+      min-height: 50px;
+      padding: 0 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      font-size: .88rem;
+      font-weight: 700;
+      transition: transform 110ms ease-out, background 180ms ease, border-color 180ms ease;
+    }
+    .button.primary { background: var(--aqua); color: #00171c; box-shadow: 0 14px 40px rgba(66, 229, 223, .16); }
+    .button.primary:hover { background: #76f2ec; }
+    .button.secondary { border-color: rgba(168, 220, 244, .32); background: rgba(4, 15, 25, .48); backdrop-filter: blur(12px); color: var(--ink); }
+    .button.secondary:hover { border-color: rgba(168, 220, 244, .58); background: rgba(14, 37, 54, .66); }
+    .button:active { transform: scale(.965); }
+
+    .snapshot {
+      position: relative;
+      min-height: 410px;
+      padding: 34px;
+      border: 1px solid rgba(168, 226, 251, .56);
+      border-top-color: rgba(221, 246, 255, .82);
+      border-radius: 24px;
+      background: var(--surface-heavy);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      box-shadow: 0 28px 75px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15);
+      transform: translate3d(0, calc(42px + var(--hero-progress) * -28px), 0) rotate(2.2deg);
+      transform-origin: 50% 72%;
+      will-change: transform;
+    }
+
+    .snapshot::after {
       content: "";
       position: absolute;
-      border: 1px solid rgba(82, 240, 214, 0.35);
-      border-radius: 10px;
-      transform: rotate(12deg);
+      top: 22px;
+      right: 24px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 16px 5px rgba(110, 231, 255, .42);
     }
 
-    .geo-card::before {
-      width: 170px;
-      height: 170px;
-      right: -35px;
-      top: -30px;
+    .snapshot h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.03em; }
+    .snapshot > p { margin: 14px 0 24px; color: #bed0dc; font-size: .94rem; line-height: 1.65; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid rgba(151, 205, 230, .17); border-radius: 14px; overflow: hidden; background: rgba(0, 7, 13, .18); }
+    .stat { min-height: 95px; padding: 17px 18px; display: flex; flex-direction: column; justify-content: center; }
+    .stat:nth-child(odd) { border-right: 1px solid rgba(151, 205, 230, .19); }
+    .stat:nth-child(-n+2) { border-bottom: 1px solid rgba(151, 205, 230, .19); }
+    .stat span { color: #98afbf; font-size: .72rem; letter-spacing: .02em; }
+    .stat strong { margin-top: 5px; font-size: 1.52rem; line-height: 1; letter-spacing: -.045em; font-weight: 650; }
+
+    .features {
+      position: relative;
+      z-index: 2;
+      min-height: 222px;
+      padding: 32px max(7vw, 48px) 28px;
+      background: rgba(2, 7, 12, .86);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(160, 213, 236, .18);
     }
 
-    .geo-card::after {
-      width: 130px;
-      height: 130px;
-      left: -40px;
-      bottom: -22px;
-      border-color: rgba(57, 200, 255, 0.35);
-      transform: rotate(-16deg);
+    .feature-grid { width: min(1200px, 100%); margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .feature { padding: 8px 38px 0 0; opacity: 0; transform: translateY(28px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
+    .feature + .feature { padding-left: 38px; border-left: 1px solid rgba(160, 213, 236, .18); }
+    .features.is-visible .feature { opacity: 1; transform: translateY(0); }
+    .features.is-visible .feature:nth-child(2) { transition-delay: 80ms; }
+    .features.is-visible .feature:nth-child(3) { transition-delay: 160ms; }
+    .feature-icon { margin-bottom: 10px; color: var(--cyan); font-size: 2rem; line-height: 1; }
+    .feature h3 { margin: 0; font-size: 1.05rem; letter-spacing: -.02em; }
+    .feature p { margin: 11px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.65; }
+
+    footer { padding: 22px max(7vw, 48px) 36px; display: flex; justify-content: space-between; gap: 18px; color: #667987; background: var(--bg); font-size: .74rem; }
+
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    ::selection { background: rgba(110, 231, 255, .3); color: white; }
+
+    @media (max-width: 980px) {
+      .hero { padding-top: 150px; padding-bottom: 80px; }
+      .hero-layout { grid-template-columns: 1fr; gap: 56px; }
+      .hero-copy { max-width: 760px; }
+      .snapshot { width: min(560px, 100%); justify-self: end; transform: rotate(1deg); }
+      .hero-media { object-position: 60% center; }
     }
 
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(130px, 1fr));
-      gap: 12px;
-      margin-top: 8px;
+    @media (max-width: 720px) {
+      .nav-wrap { top: 12px; width: calc(100% - 20px); }
+      .nav-shell { min-height: 52px; padding-left: 15px; }
+      .nav-repo { padding: 0 12px; }
+      .hero { min-height: auto; padding: 130px 22px 72px; }
+      .hero-layout { gap: 48px; }
+      h1 { font-size: clamp(2.8rem, 14vw, 4.25rem); line-height: 1.03; }
+      .lede { font-size: .98rem; }
+      .hero-media { object-position: 64% center; opacity: .58; }
+      .snapshot { min-height: auto; padding: 25px; border-radius: 20px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .features { padding: 44px 22px 54px; }
+      .feature, .feature + .feature { padding: 28px 0; border-left: 0; border-top: 1px solid rgba(160, 213, 236, .18); }
+      .feature:first-child { padding-top: 0; border-top: 0; }
+      footer { padding: 20px 22px 32px; flex-direction: column; }
     }
 
-    .stat {
-      padding: 12px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(124, 201, 238, 0.3);
-      background: rgba(13, 37, 52, 0.58);
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .hero-media, .hero-copy, .snapshot, .feature { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
     }
 
-    .stat span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.78rem;
-      margin-bottom: 4px;
-      letter-spacing: .5px;
+    @media (prefers-reduced-transparency: reduce) {
+      .nav-shell, .snapshot, .features, .button.secondary { backdrop-filter: none; -webkit-backdrop-filter: none; background: #07131d; }
     }
 
-    .stat strong {
-      font-family: "Orbitron", sans-serif;
-      font-size: 1.25rem;
-      color: #dcf8ff;
-    }
-
-    .sections {
-      padding: 0 32px 38px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .panel {
-      border: 1px solid rgba(114, 191, 233, 0.28);
-      border-radius: 14px;
-      padding: 18px;
-      background: rgba(10, 27, 40, 0.72);
-      transition: transform .16s ease, border-color .2s ease;
-    }
-
-    .panel:hover {
-      transform: translateY(-3px);
-      border-color: rgba(127, 221, 255, 0.5);
-    }
-
-    .panel h3 {
-      font-family: "Orbitron", sans-serif;
-      text-transform: uppercase;
-      font-size: 0.95rem;
-      letter-spacing: 0.9px;
-      margin-bottom: 10px;
-      color: #d8f5ff;
-    }
-
-    .panel p {
-      color: var(--muted);
-      line-height: 1.65;
-      font-size: 0.95rem;
-    }
-
-    footer {
-      border-top: 1px solid rgba(137, 213, 245, 0.2);
-      padding: 14px 32px 22px;
-      color: var(--muted);
-      font-size: 0.86rem;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    @keyframes drift {
-      from { transform: translateY(0); }
-      to { transform: translateY(70px); }
-    }
-
-    @keyframes orbA {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(40px, 28px); }
-    }
-
-    @keyframes orbB {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(-32px, -20px); }
-    }
-
-    @media (max-width: 900px) {
-      .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .sections {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 560px) {
-      .shell {
-        width: 95vw;
-        margin: 16px auto;
-      }
-
-      header, .hero, .sections, footer {
-        padding-left: 16px;
-        padding-right: 16px;
-      }
-
-      .hero {
-        padding-top: 30px;
-      }
+    @media (prefers-contrast: more) {
+      .nav-shell, .snapshot { border: 2px solid white; }
+      .lede, .snapshot > p, .feature p { color: #e6edf2; }
     }
   </style>
 </head>
 <body>
-  <canvas id="stars"></canvas>
-  <div class="grid-overlay"></div>
-  <div class="glow-orb orb-a"></div>
-  <div class="glow-orb orb-b"></div>
+  <div class="scroll-progress" aria-hidden="true"></div>
 
-  <main class="shell">
-    <header>
-      <div class="brand">Cosmic Geometry</div>
-      <div class="tag">Static Showcase</div>
-    </header>
-
-    <section class="hero">
-      <div>
-        <h1>Built for Stars, Shapes, and Motion</h1>
-        <p>
-          A fully redesigned landing page with a geometric universe aesthetic.
-          The old chat interface is removed. This version focuses on visual storytelling,
-          animated depth, and a strong sci-fi product identity in English.
-        </p>
-        <div class="actions">
-          <a class="btn" href="#features">Explore Features</a>
-          <a class="btn secondary" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener">View Repository</a>
-        </div>
+  <div class="nav-wrap">
+    <nav class="nav-shell" aria-label="Primary navigation">
+      <a class="brand" href="#top">Cosmic Geometry</a>
+      <div class="nav-actions">
+        <a class="nav-repo" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">
+          View Repository <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        <span class="nav-signal" aria-label="Showcase online"><i class="ph ph-circle" aria-hidden="true"></i></span>
       </div>
+    </nav>
+  </div>
 
-      <aside class="geo-card">
-        <h3 style="font-family: Orbitron, sans-serif; margin-bottom: 12px; letter-spacing: .8px;">System Snapshot</h3>
-        <p style="color: var(--muted); line-height: 1.65;">
-          Geometry-driven composition, animated starfield layer, and responsive layout designed for desktop and mobile.
-        </p>
-        <div class="stat-grid">
-          <div class="stat">
-            <span>Canvas Stars</span>
-            <strong>220</strong>
-          </div>
-          <div class="stat">
-            <span>Grid Cells</span>
-            <strong>70px</strong>
-          </div>
-          <div class="stat">
-            <span>Theme</span>
-            <strong>Sci-Fi</strong>
-          </div>
-          <div class="stat">
-            <span>Language</span>
-            <strong>EN</strong>
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-media" src="assets/cosmic-hero-bg.webp" alt="" aria-hidden="true">
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <h1 id="hero-title">Built for<br>Stars, Shapes,<br>and Motion</h1>
+          <p class="lede">A fully redesigned landing page with a geometric universe aesthetic. The old chat interface is removed. This version focuses on visual storytelling, animated depth, and a strong sci-fi product identity in English.</p>
+          <div class="actions">
+            <a class="button primary" href="#features">Explore Features <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+            <a class="button secondary" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">View Repository</a>
           </div>
         </div>
-      </aside>
+
+        <aside class="snapshot" aria-labelledby="snapshot-title">
+          <h2 id="snapshot-title">System Snapshot</h2>
+          <p>Geometry-driven composition, animated starfield layer, and responsive layout designed for desktop and mobile.</p>
+          <div class="stat-grid">
+            <div class="stat"><span>Canvas Stars</span><strong>220</strong></div>
+            <div class="stat"><span>Grid Cells</span><strong>70px</strong></div>
+            <div class="stat"><span>Theme</span><strong>Sci-Fi</strong></div>
+            <div class="stat"><span>Language</span><strong>EN</strong></div>
+          </div>
+        </aside>
+      </div>
     </section>
 
-    <section class="sections" id="features">
-      <article class="panel">
-        <h3>Visual Direction</h3>
-        <p>
-          The palette uses deep space blue, aqua, mint, and warm amber highlights for contrast,
-          avoiding generic defaults and delivering a consistent cosmic atmosphere.
-        </p>
-      </article>
-      <article class="panel">
-        <h3>Motion Layer</h3>
-        <p>
-          Subtle drifting grid, glowing orbital blobs, and twinkling stars provide movement without
-          distracting from readability or content hierarchy.
-        </p>
-      </article>
-      <article class="panel">
-        <h3>Responsive Build</h3>
-        <p>
-          The structure collapses naturally from multi-column desktop composition to a single-column
-          mobile layout while preserving spacing, typography, and clarity.
-        </p>
-      </article>
+    <section class="features" id="features" aria-label="Design features">
+      <div class="feature-grid">
+        <article class="feature">
+          <i class="feature-icon ph ph-star-four" aria-hidden="true"></i>
+          <h3>Visual Direction</h3>
+          <p>The palette uses deep space blue, aqua, mint, and warm amber highlights for contrast, avoiding generic defaults and delivering a consistent cosmic atmosphere.</p>
+        </article>
+        <article class="feature">
+          <i class="feature-icon ph ph-planet" aria-hidden="true"></i>
+          <h3>Motion Layer</h3>
+          <p>Subtle drifting grid, glowing orbital blobs, and twinkling stars provide movement without distracting from readability or content hierarchy.</p>
+        </article>
+        <article class="feature">
+          <i class="feature-icon ph ph-grid-four" aria-hidden="true"></i>
+          <h3>Responsive Build</h3>
+          <p>The structure collapses naturally from a multi-column desktop composition to a single-column mobile layout while preserving spacing, typography, and clarity.</p>
+        </article>
+      </div>
     </section>
-
-    <footer>
-      <span>Cosmic Geometry Theme • Frontend Redesign</span>
-      <span>Ready for GitHub Pages Deployment</span>
-    </footer>
   </main>
 
+  <footer>
+    <span>Cosmic Geometry Theme 路 Frontend Redesign</span>
+    <span>Designed for GitHub Pages</span>
+  </footer>
+
   <script>
-    const canvas = document.getElementById("stars");
-    const ctx = canvas.getContext("2d");
-    const stars = [];
-    const STAR_COUNT = 220;
+    (() => {
+      const root = document.documentElement;
+      const hero = document.querySelector('.hero');
+      const features = document.querySelector('.features');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let frame = 0;
 
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+      const updateScroll = () => {
+        const maxScroll = Math.max(1, root.scrollHeight - window.innerHeight);
+        const heroHeight = Math.max(1, hero.offsetHeight);
+        root.style.setProperty('--page-progress', Math.min(1, window.scrollY / maxScroll));
+        root.style.setProperty('--hero-progress', reducedMotion.matches ? 0 : Math.min(1, window.scrollY / heroHeight));
+        frame = 0;
+      };
 
-    function createStars() {
-      stars.length = 0;
-      for (let i = 0; i < STAR_COUNT; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 1.8 + 0.2,
-          v: Math.random() * 0.26 + 0.04,
-          a: Math.random() * 0.8 + 0.2
-        });
-      }
-    }
+      const schedule = () => {
+        if (!frame) frame = requestAnimationFrame(updateScroll);
+      };
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const s of stars) {
-        s.y += s.v;
-        if (s.y > canvas.height + 2) {
-          s.y = -2;
-          s.x = Math.random() * canvas.width;
-        }
-        const pulse = 0.35 + Math.sin((s.y + s.x) * 0.02) * 0.25;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(214, 241, 255, ${Math.max(0.12, s.a * pulse)})`;
-        ctx.fill();
-      }
-      requestAnimationFrame(draw);
-    }
+      const featureObserver = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) features.classList.add('is-visible');
+      }, { threshold: .22 });
 
-    resize();
-    createStars();
-    draw();
-    window.addEventListener("resize", () => {
-      resize();
-      createStars();
-    });
+      featureObserver.observe(features);
+      updateScroll();
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule);
+      reducedMotion.addEventListener?.('change', schedule);
+    })();
   </script>
 </body>
 </html>
+
