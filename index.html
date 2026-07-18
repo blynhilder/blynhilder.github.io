@@ -1,31 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#02070c">
-  <meta name="description" content="Cosmic Geometry — a spatial, motion-led frontend showcase built for stars, shapes, and motion.">
-  <title>Cosmic Geometry — Built for Stars, Shapes, and Motion</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="玻璃与弹簧 — 一份可以上手玩的交互科普：苹果如何用物理、材质与字体设计界面的手感。">
+  <title>玻璃与弹簧 — 苹果设计手感的交互科普</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
   <style>
     :root {
-      --bg: #02070c;
-      --surface: rgba(8, 24, 37, .66);
-      --surface-heavy: rgba(9, 29, 44, .78);
-      --ink: #f5f7fa;
-      --muted: #a7b6c4;
-      --cyan: #6ee7ff;
-      --aqua: #42e5df;
-      --line: rgba(145, 213, 244, .24);
+      --bg: #f5f5f7;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --faint: #86868b;
+      --gold: #a2782c;          /* text-safe champagne */
+      --gold-bright: #d3ae6b;
+      --gold-pale: #efdfc0;
+      --glass: rgba(255, 255, 255, .58);
+      --glass-heavy: rgba(255, 255, 255, .72);
+      --hairline: rgba(29, 29, 31, .1);
       --page-progress: 0;
       --hero-progress: 0;
       --story-progress: 0;
-      color-scheme: dark;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      /* Apple-style motion tokens: smooth = critically damped, bounce = momentum-driven overshoot */
+      --spring-smooth: cubic-bezier(.22, 1, .36, 1);
+      --spring-bounce: cubic-bezier(.34, 1.45, .64, 1);
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
       font-synthesis: none;
+      font-optical-sizing: auto;
     }
 
     * { box-sizing: border-box; }
@@ -41,16 +44,16 @@
       left: 0;
       width: calc(var(--page-progress) * 100%);
       height: 2px;
-      background: var(--cyan);
-      box-shadow: 0 0 18px rgba(110, 231, 255, .75);
+      background: linear-gradient(90deg, #c9a35a, #e7cd9a, #c9a35a);
     }
 
+    /* ---------- floating glass nav ---------- */
     .nav-wrap {
       position: fixed;
       z-index: 90;
       top: 24px;
       left: 50%;
-      width: min(512px, calc(100% - 36px));
+      width: min(520px, calc(100% - 36px));
       transform: translateX(-50%);
     }
 
@@ -60,16 +63,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border: 1px solid rgba(163, 220, 247, .29);
-      border-top-color: rgba(215, 242, 255, .42);
-      border-radius: 16px;
-      background: rgba(6, 19, 30, .62);
-      backdrop-filter: blur(18px) saturate(145%);
-      -webkit-backdrop-filter: blur(18px) saturate(145%);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, .26);
+      border: 1px solid rgba(255, 255, 255, .75);
+      border-top-color: rgba(255, 255, 255, .95); /* bright top edge: light catching the glass */
+      border-radius: 18px;
+      background: var(--glass);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      box-shadow: 0 12px 40px rgba(29, 29, 31, .1);
+      animation: nav-materialize .9s var(--spring-smooth) .1s backwards;
     }
 
-    .brand { font-size: .97rem; font-weight: 650; letter-spacing: -.02em; }
+    @keyframes nav-materialize {
+      from { opacity: 0; scale: .94; translate: 0 -10px; }
+    }
+
+    .brand { font-size: .97rem; font-weight: 650; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: 8px; }
+    .brand small { color: var(--faint); font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
     .nav-actions { display: flex; align-items: center; gap: 8px; }
     .nav-repo {
       min-height: 38px;
@@ -77,23 +86,21 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(190, 226, 242, .25);
-      border-radius: 11px;
-      background: rgba(255, 255, 255, .055);
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .5);
       font-size: .78rem;
       font-weight: 620;
-      transition: transform 120ms ease-out, background 180ms ease;
+      transition: transform 420ms var(--spring-bounce), background 180ms ease;
     }
-    .nav-repo:hover { background: rgba(255, 255, 255, .11); }
-    .nav-repo:active { transform: scale(.96); }
-    .nav-signal { display: grid; place-items: center; width: 34px; height: 34px; color: var(--cyan); font-size: .75rem; }
+    .nav-repo:hover { background: rgba(255, 255, 255, .9); }
+    .nav-repo:active { transform: scale(.94); transition: transform 70ms ease-out, background 120ms ease; }
+    .nav-signal { display: grid; place-items: center; width: 34px; height: 34px; color: var(--gold); font-size: .75rem; }
 
     main { position: relative; background: var(--bg); }
 
-    .hero-scroll {
-      position: relative;
-      height: 185svh;
-    }
+    /* ---------- hero ---------- */
+    .hero-scroll { position: relative; height: 185svh; }
 
     .hero {
       position: sticky;
@@ -105,16 +112,18 @@
       isolation: isolate;
     }
 
-    .hero-media {
+    /* soft metallic aurora instead of a photo: silver, champagne, sky */
+    .hero-aurora {
       position: absolute;
       z-index: -2;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      transform: translate3d(0, calc(var(--hero-progress) * 85px), 0) scale(calc(1 + var(--hero-progress) * .12));
-      transform-origin: 58% 60%;
+      inset: -12%;
+      background:
+        radial-gradient(42% 46% at 22% 26%, rgba(233, 214, 173, .8), transparent 68%),
+        radial-gradient(46% 52% at 82% 22%, rgba(214, 224, 236, .9), transparent 70%),
+        radial-gradient(52% 56% at 68% 84%, rgba(240, 231, 214, .85), transparent 72%),
+        radial-gradient(36% 40% at 12% 82%, rgba(222, 230, 240, .8), transparent 70%);
+      filter: blur(6px);
+      transform: translate3d(0, calc(var(--hero-progress) * 70px), 0) scale(calc(1 + var(--hero-progress) * .08));
       will-change: transform;
     }
 
@@ -135,25 +144,47 @@
       will-change: transform, opacity;
     }
 
+    .hero-copy > * { animation: rise-in .85s var(--spring-smooth) backwards; }
+    .hero-copy > *:nth-child(1) { animation-delay: .1s; }
+    .hero-copy > *:nth-child(2) { animation-delay: .18s; }
+    .hero-copy > *:nth-child(3) { animation-delay: .28s; }
+    .hero-copy > *:nth-child(4) { animation-delay: .36s; }
+
+    @keyframes rise-in {
+      from { opacity: 0; translate: 0 20px; }
+    }
+
     .eyebrow {
       margin: 0 0 20px;
-      color: var(--cyan);
+      color: var(--gold);
       font-size: .7rem;
       line-height: 1;
       font-weight: 750;
-      letter-spacing: .16em;
+      letter-spacing: .18em;
       text-transform: uppercase;
     }
 
     h1 {
       max-width: 720px;
       margin: 0;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(3.55rem, 5vw, 4.75rem);
-      line-height: 1.06;
-      letter-spacing: -.055em;
-      font-weight: 600;
+      font-size: clamp(3.3rem, 5.4vw, 4.9rem);
+      line-height: 1.08;
+      letter-spacing: -.035em;   /* large display: negative tracking */
+      font-weight: 700;
       text-wrap: balance;
+      /* engraved-silver headline */
+      background: linear-gradient(165deg, #3c3c3e 0%, #1d1d1f 42%, #55555a 78%, #1d1d1f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(120deg, #9a7226, #d3ae6b 55%, #9a7226);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .lede {
@@ -161,8 +192,8 @@
       margin: 25px 0 0;
       color: var(--muted);
       font-size: clamp(1rem, 1.3vw, 1.12rem);
-      line-height: 1.68;
-      letter-spacing: -.012em;
+      line-height: 1.75;
+      letter-spacing: 0;         /* body copy: tracking stays at zero */
     }
 
     .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
@@ -173,32 +204,72 @@
       align-items: center;
       gap: 12px;
       border: 1px solid transparent;
-      border-radius: 13px;
+      border-radius: 14px;
       font-size: .88rem;
       font-weight: 700;
-      transition: transform 110ms ease-out, background 180ms ease, border-color 180ms ease;
+      transition: transform 420ms var(--spring-bounce), background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
-    .button.primary { background: var(--aqua); color: #00171c; box-shadow: 0 14px 40px rgba(66, 229, 223, .16); }
-    .button.primary:hover { background: #76f2ec; }
-    .button.secondary { border-color: rgba(168, 220, 244, .32); background: rgba(4, 15, 25, .48); backdrop-filter: blur(12px); color: var(--ink); }
-    .button.secondary:hover { border-color: rgba(168, 220, 244, .58); background: rgba(14, 37, 54, .66); }
-    .button:active { transform: scale(.965); }
+    .button.primary {
+      background: linear-gradient(180deg, #ecd3a2, #d3ae6b);
+      color: #3b2c0e;
+      border-color: rgba(255, 255, 255, .6);
+      box-shadow: 0 14px 34px rgba(190, 152, 84, .3), inset 0 1px 0 rgba(255, 255, 255, .7);
+    }
+    .button.primary:hover { background: linear-gradient(180deg, #f1dcb0, #dcb97a); }
+    .button.secondary {
+      border-color: rgba(255, 255, 255, .8);
+      background: var(--glass);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      color: var(--ink);
+      box-shadow: 0 10px 28px rgba(29, 29, 31, .07);
+    }
+    .button.secondary:hover { background: rgba(255, 255, 255, .85); }
+    .button:active { transform: scale(.955); transition: transform 70ms ease-out, background 120ms ease, border-color 120ms ease; }
 
+    /* ---------- draggable glass card: the physics bench ---------- */
     .snapshot {
       position: relative;
       min-height: 410px;
       padding: 34px;
-      border: 1px solid rgba(168, 226, 251, .56);
-      border-top-color: rgba(221, 246, 255, .82);
-      border-radius: 24px;
-      background: var(--surface-heavy);
-      backdrop-filter: blur(22px) saturate(140%);
-      -webkit-backdrop-filter: blur(22px) saturate(140%);
-      box-shadow: 0 28px 75px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15);
-      transform: translate3d(calc(var(--hero-progress) * 90px), calc(42px + var(--hero-progress) * -58px), 0) rotate(calc(2.2deg + var(--hero-progress) * 2deg)) scale(calc(1 - var(--hero-progress) * .08));
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-top-color: rgba(255, 255, 255, 1);
+      border-radius: 26px;
+      background: var(--glass-heavy);
+      backdrop-filter: blur(26px) saturate(170%);
+      -webkit-backdrop-filter: blur(26px) saturate(170%);
+      box-shadow: 0 30px 70px rgba(29, 29, 31, .14), inset 0 1px 0 rgba(255, 255, 255, .9);
+      --drag-x: 0px;
+      --drag-y: 0px;
+      transform: translate3d(var(--drag-x), var(--drag-y), 0) translate3d(calc(var(--hero-progress) * 90px), calc(42px + var(--hero-progress) * -58px), 0) rotate(calc(2.2deg + var(--hero-progress) * 2deg)) scale(calc(1 - var(--hero-progress) * .08));
       opacity: calc(1 - var(--hero-progress) * 1.15);
       transform-origin: 50% 72%;
       will-change: transform, opacity;
+      cursor: grab;
+      touch-action: pan-y;
+      animation: card-materialize 1s var(--spring-smooth) .3s backwards;
+      overflow: hidden;
+    }
+
+    /* liquid-glass specular sheen sweeping the top edge */
+    .snapshot::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 44%, rgba(255, 255, 255, 0) 56%);
+      opacity: .8;
+    }
+
+    @keyframes card-materialize {
+      from { opacity: 0; scale: .95; translate: 0 18px; }
+    }
+
+    .snapshot.is-dragging {
+      cursor: grabbing;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 46px 95px rgba(29, 29, 31, .2), inset 0 1px 0 rgba(255, 255, 255, .9);
     }
 
     .snapshot::after {
@@ -206,21 +277,22 @@
       position: absolute;
       top: 22px;
       right: 24px;
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 16px 5px rgba(110, 231, 255, .42);
+      background: linear-gradient(180deg, #ecd3a2, #c9a35a);
+      box-shadow: 0 0 12px 3px rgba(211, 174, 107, .5);
     }
 
-    .snapshot h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.03em; }
-    .snapshot > p { margin: 14px 0 24px; color: #bed0dc; font-size: .94rem; line-height: 1.65; }
-    .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid rgba(151, 205, 230, .17); border-radius: 14px; overflow: hidden; background: rgba(0, 7, 13, .18); }
+    .snapshot h2 { position: relative; margin: 0; font-size: 1.35rem; letter-spacing: -.02em; }
+    .snapshot h2 small { margin-left: 8px; color: var(--faint); font-size: .68rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
+    .snapshot > p { position: relative; margin: 14px 0 24px; color: var(--muted); font-size: .93rem; line-height: 1.7; }
+    .stat-grid { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--hairline); border-radius: 15px; overflow: hidden; background: rgba(255, 255, 255, .45); }
     .stat { min-height: 95px; padding: 17px 18px; display: flex; flex-direction: column; justify-content: center; }
-    .stat:nth-child(odd) { border-right: 1px solid rgba(151, 205, 230, .19); }
-    .stat:nth-child(-n+2) { border-bottom: 1px solid rgba(151, 205, 230, .19); }
-    .stat span { color: #98afbf; font-size: .72rem; letter-spacing: .02em; }
-    .stat strong { margin-top: 5px; font-size: 1.52rem; line-height: 1; letter-spacing: -.045em; font-weight: 650; }
+    .stat:nth-child(odd) { border-right: 1px solid var(--hairline); }
+    .stat:nth-child(-n+2) { border-bottom: 1px solid var(--hairline); }
+    .stat span { color: var(--faint); font-size: .72rem; letter-spacing: .04em; }
+    .stat strong { margin-top: 5px; font-size: 1.42rem; line-height: 1; letter-spacing: -.03em; font-weight: 680; font-variant-numeric: tabular-nums; }
 
     .hero-cue {
       position: absolute;
@@ -230,21 +302,18 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      color: rgba(230, 242, 248, calc(.72 - var(--hero-progress) * .9));
+      color: rgba(110, 110, 115, calc(1 - var(--hero-progress) * 1.3));
       font-size: .7rem;
       font-weight: 700;
-      letter-spacing: .14em;
+      letter-spacing: .16em;
       text-transform: uppercase;
       transform: translateX(-50%) translateY(calc(var(--hero-progress) * 24px));
     }
 
-    .hero-cue i { color: var(--cyan); font-size: 1rem; }
+    .hero-cue i { color: var(--gold); font-size: 1rem; }
 
-    .story {
-      position: relative;
-      height: 500svh;
-      background: #02070c;
-    }
+    /* ---------- scroll story: five principles ---------- */
+    .story { position: relative; height: 500svh; background: var(--bg); }
 
     .story-stage {
       position: sticky;
@@ -257,25 +326,16 @@
       isolation: isolate;
     }
 
-    .story-media {
-      position: absolute;
-      z-index: -3;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: 65% 54%;
-      opacity: .34;
-      transform: translate3d(0, calc(var(--story-progress) * -55px), 0) scale(calc(1.08 + var(--story-progress) * .2));
-      filter: saturate(.75) brightness(.64);
-      will-change: transform;
-    }
-
-    .story-shade {
+    .story-veil {
       position: absolute;
       z-index: -2;
-      inset: 0;
-      background: rgba(2, 7, 12, .66);
+      inset: -10%;
+      background:
+        radial-gradient(50% 55% at 78% 20%, rgba(233, 214, 173, .55), transparent 70%),
+        radial-gradient(48% 55% at 16% 78%, rgba(214, 224, 236, .65), transparent 72%);
+      filter: blur(8px);
+      transform: translate3d(0, calc(var(--story-progress) * -45px), 0) scale(calc(1.04 + var(--story-progress) * .1));
+      will-change: transform;
     }
 
     .story-shell {
@@ -289,10 +349,10 @@
       top: 0;
       left: 0;
       margin: 0;
-      color: var(--cyan);
+      color: var(--gold);
       font-size: .7rem;
       font-weight: 760;
-      letter-spacing: .18em;
+      letter-spacing: .2em;
       text-transform: uppercase;
     }
 
@@ -300,10 +360,10 @@
       position: absolute;
       top: 0;
       right: 0;
-      color: #98afbf;
-      font-family: "Orbitron", sans-serif;
+      color: var(--faint);
       font-size: .78rem;
-      letter-spacing: .08em;
+      letter-spacing: .12em;
+      font-variant-numeric: tabular-nums;
     }
 
     .story-card {
@@ -324,11 +384,23 @@
     }
 
     .story-card.is-active { pointer-events: auto; }
-    .story-era { margin: 0 0 18px; color: #8fa7b8; font-size: .82rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    .story-card h2 { margin: 0; max-width: 830px; font-size: clamp(3.8rem, 7.6vw, 7.2rem); line-height: .95; letter-spacing: -.065em; font-weight: 680; }
-    .story-card p { max-width: 650px; margin: 28px 0 0; color: #b6c5d0; font-size: clamp(1rem, 1.6vw, 1.22rem); line-height: 1.65; letter-spacing: -.015em; }
-    .story-fact { margin-top: 24px; display: inline-flex; align-items: center; gap: 10px; color: var(--cyan); font-size: .78rem; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; }
-    .story-fact i { font-size: 1.25rem; }
+    .story-era { margin: 0 0 18px; color: var(--faint); font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .story-card h2 {
+      margin: 0;
+      max-width: 830px;
+      font-size: clamp(2.9rem, 6.4vw, 5.6rem);
+      line-height: 1.06;
+      letter-spacing: -.04em;   /* heading: tight tracking, tight leading */
+      font-weight: 720;
+      background: linear-gradient(160deg, #333336, #1d1d1f 50%, #4c4c50);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .story-card p { max-width: 640px; margin: 26px 0 0; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.75; letter-spacing: 0; }
+    .story-fact { margin-top: 24px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 999px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); color: var(--gold); font-size: .76rem; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 8px 22px rgba(29,29,31,.06); }
+    .story-fact i { font-size: 1.15rem; }
+    .story-fact code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .74rem; letter-spacing: 0; text-transform: none; }
 
     .story-nav {
       position: absolute;
@@ -356,11 +428,11 @@
       width: 5px;
       height: 5px;
       border-radius: 999px;
-      background: #647a89;
-      transition: height 220ms ease, background 220ms ease, box-shadow 220ms ease;
+      background: rgba(29, 29, 31, .25);
+      transition: height 380ms var(--spring-bounce), background 220ms ease, box-shadow 220ms ease;
     }
 
-    .story-dot.is-active::before { height: 28px; background: var(--cyan); box-shadow: 0 0 18px rgba(110, 231, 255, .5); }
+    .story-dot.is-active::before { height: 28px; background: linear-gradient(180deg, #d9b87d, #b78f43); box-shadow: 0 0 14px rgba(201, 163, 90, .55); }
 
     .story-progress {
       position: absolute;
@@ -369,51 +441,54 @@
       width: 100%;
       height: 1px;
       overflow: hidden;
-      background: rgba(143, 177, 194, .22);
+      background: rgba(29, 29, 31, .12);
     }
 
     .story-progress span {
       display: block;
       width: 100%;
       height: 100%;
-      background: var(--cyan);
+      background: linear-gradient(90deg, #c9a35a, #e7cd9a);
       transform: scaleX(var(--story-progress));
       transform-origin: left;
-      box-shadow: 0 0 16px rgba(110, 231, 255, .65);
     }
 
+    /* ---------- helper cards ---------- */
     .features {
       position: relative;
       z-index: 2;
       min-height: 222px;
-      padding: 32px max(7vw, 48px) 28px;
-      background: rgba(2, 7, 12, .86);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(160, 213, 236, .18);
+      padding: 56px max(7vw, 48px) 48px;
+      background: rgba(255, 255, 255, .55);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border-top: 1px solid rgba(255, 255, 255, .9);
+      box-shadow: 0 -12px 40px rgba(29, 29, 31, .05);
     }
 
     .feature-grid { width: min(1200px, 100%); margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .feature { padding: 8px 38px 0 0; opacity: 0; transform: translateY(28px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
-    .feature + .feature { padding-left: 38px; border-left: 1px solid rgba(160, 213, 236, .18); }
+    .feature { padding: 8px 38px 0 0; opacity: 0; transform: translateY(28px); transition: opacity .5s ease, transform .6s var(--spring-smooth); }
+    .feature + .feature { padding-left: 38px; border-left: 1px solid var(--hairline); }
     .features.is-visible .feature { opacity: 1; transform: translateY(0); }
     .features.is-visible .feature:nth-child(2) { transition-delay: 80ms; }
     .features.is-visible .feature:nth-child(3) { transition-delay: 160ms; }
-    .feature-icon { margin-bottom: 10px; color: var(--cyan); font-size: 2rem; line-height: 1; }
-    .feature h3 { margin: 0; font-size: 1.05rem; letter-spacing: -.02em; }
-    .feature p { margin: 11px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.65; }
+    .feature-icon { margin-bottom: 10px; color: var(--gold); font-size: 2rem; line-height: 1; }
+    .feature h3 { margin: 0; font-size: 1.05rem; letter-spacing: -.015em; }
+    .feature p { margin: 11px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.7; }
+    .feature a { color: var(--gold); font-weight: 650; border-bottom: 1px solid rgba(162, 120, 44, .35); }
+    .feature a:hover { border-bottom-color: var(--gold); }
 
-    footer { padding: 22px max(7vw, 48px) 36px; display: flex; justify-content: space-between; gap: 18px; color: #667987; background: var(--bg); font-size: .74rem; }
+    footer { padding: 22px max(7vw, 48px) 36px; display: flex; justify-content: space-between; gap: 18px; color: var(--faint); background: var(--bg); font-size: .74rem; }
 
-    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
-    ::selection { background: rgba(110, 231, 255, .3); color: white; }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    ::selection { background: rgba(211, 174, 107, .35); }
 
+    /* ---------- responsive ---------- */
     @media (max-width: 980px) {
       .hero { padding-top: 150px; padding-bottom: 80px; }
       .hero-layout { grid-template-columns: 1fr; gap: 56px; }
       .hero-copy { max-width: 760px; }
-      .snapshot { width: min(560px, 100%); justify-self: end; transform: rotate(1deg); }
-      .hero-media { object-position: 60% center; }
+      .snapshot { width: min(560px, 100%); justify-self: end; transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(1deg); }
       .story-shell { width: min(820px, calc(100% - 56px)); }
       .story-card { width: calc(100% - 72px); }
     }
@@ -422,35 +497,39 @@
       .nav-wrap { top: 12px; width: calc(100% - 20px); }
       .nav-shell { min-height: 52px; padding-left: 15px; }
       .nav-repo { padding: 0 12px; }
+      .brand small { display: none; }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; min-height: auto; padding: 130px 22px 72px; }
       .hero-layout { gap: 48px; }
-      h1 { font-size: clamp(2.8rem, 14vw, 4.25rem); line-height: 1.03; }
+      h1 { font-size: clamp(2.5rem, 12vw, 3.9rem); line-height: 1.08; }
       .lede { font-size: .98rem; }
-      .hero-media { object-position: 64% center; opacity: .58; }
-      .snapshot { min-height: auto; padding: 25px; border-radius: 20px; }
+      .snapshot { min-height: auto; padding: 25px; border-radius: 22px; }
       .hero-cue { display: none; }
       .story { height: 440svh; }
       .story-stage { min-height: 560px; }
       .story-shell { width: calc(100% - 44px); height: 78svh; min-height: 560px; }
       .story-card { width: calc(100% - 34px); }
-      .story-card h2 { font-size: clamp(3.1rem, 14vw, 4.8rem); }
+      .story-card h2 { font-size: clamp(2.3rem, 10.5vw, 3.6rem); }
       .story-card p { margin-top: 22px; font-size: .98rem; }
       .story-nav { right: -12px; }
       .story-kicker { max-width: calc(100% - 54px); }
       .story-counter { top: 34px; right: 4px; }
       .feature-grid { grid-template-columns: 1fr; }
       .features { padding: 44px 22px 54px; }
-      .feature, .feature + .feature { padding: 28px 0; border-left: 0; border-top: 1px solid rgba(160, 213, 236, .18); }
+      .feature, .feature + .feature { padding: 28px 0; border-left: 0; border-top: 1px solid var(--hairline); }
       .feature:first-child { padding-top: 0; border-top: 0; }
       footer { padding: 20px 22px 32px; flex-direction: column; }
     }
 
+    /* ---------- inclusive modes ---------- */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
+      .nav-shell, .hero-copy > *, .snapshot { animation: none !important; scale: none !important; translate: none !important; }
+      .snapshot { cursor: default; touch-action: auto; }
+      .button, .nav-repo, .story-dot::before { transition-duration: 1ms !important; }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; }
-      .hero-media, .hero-copy, .snapshot, .feature, .story-media { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
+      .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
       .story { height: auto; }
       .story-stage { position: relative; height: auto; padding: 120px 0; }
       .story-shell { height: auto; }
@@ -460,12 +539,13 @@
     }
 
     @media (prefers-reduced-transparency: reduce) {
-      .nav-shell, .snapshot, .features, .button.secondary { backdrop-filter: none; -webkit-backdrop-filter: none; background: #07131d; }
+      .nav-shell, .snapshot, .features, .button.secondary, .story-fact { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
     }
 
     @media (prefers-contrast: more) {
-      .nav-shell, .snapshot { border: 2px solid white; }
-      .lede, .snapshot > p, .feature p { color: #e6edf2; }
+      .nav-shell, .snapshot, .story-fact { border: 2px solid var(--ink); }
+      .lede, .snapshot > p, .feature p, .story-card p { color: #3a3a3c; }
+      h1, .story-card h2 { background: none; color: var(--ink); }
     }
   </style>
 </head>
@@ -473,96 +553,95 @@
   <div class="scroll-progress" aria-hidden="true"></div>
 
   <div class="nav-wrap">
-    <nav class="nav-shell" aria-label="Primary navigation">
-      <a class="brand" href="#top">Cosmic Geometry</a>
+    <nav class="nav-shell" aria-label="主导航">
+      <a class="brand" href="#top">玻璃与弹簧 <small>Glass · Springs</small></a>
       <div class="nav-actions">
         <a class="nav-repo" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">
-          View Repository <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
+          查看源码 <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
         </a>
-        <span class="nav-signal" aria-label="Showcase online"><i class="ph ph-circle" aria-hidden="true"></i></span>
+        <span class="nav-signal" aria-label="站点在线"><i class="ph ph-circle" aria-hidden="true"></i></span>
       </div>
     </nav>
   </div>
 
   <main id="top">
-    <section class="hero-scroll" aria-label="Introduction">
+    <section class="hero-scroll" aria-label="介绍">
       <section class="hero" aria-labelledby="hero-title">
-        <img class="hero-media" src="assets/cosmic-hero-bg.webp" alt="" aria-hidden="true">
+        <div class="hero-aurora" aria-hidden="true"></div>
         <div class="hero-layout">
           <div class="hero-copy">
-            <p class="eyebrow">A story shaped by computation</p>
-            <h1 id="hero-title">Built for<br>Stars, Shapes,<br>and Motion</h1>
-            <p class="lede">Scroll through the breakthroughs that moved computing from room-sized machines to an invisible layer of everyday life.</p>
+            <p class="eyebrow">一份可以上手玩的交互科普</p>
+            <h1 id="hero-title">轻盈如光，<br>流动如水，<br><em>触手可及。</em></h1>
+            <p class="lede">界面的"手感"从哪里来？这个页面拆解苹果设计语言里的五个核心原则——从按下的第一帧，到弹簧的物理，再到液态玻璃的层级。往下滚动阅读，或者先抓起右边那张卡片甩一甩。</p>
             <div class="actions">
-              <a class="button primary" href="#history">Start the Journey <i class="ph ph-arrow-down" aria-hidden="true"></i></a>
-              <a class="button secondary" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">View Repository</a>
+              <a class="button primary" href="#principles">开始阅读 <i class="ph ph-arrow-down" aria-hidden="true"></i></a>
+              <a class="button secondary" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">查看源码</a>
             </div>
           </div>
 
           <aside class="snapshot" aria-labelledby="snapshot-title">
-            <h2 id="snapshot-title">System Snapshot</h2>
-            <p>A scroll-driven timeline of five breakthroughs, presented with cinematic depth and responsive motion.</p>
+            <h2 id="snapshot-title">手感实验台 <small>Physics Bench</small></h2>
+            <p>这张玻璃卡片连着两根真正的弹簧。抓起、甩出、在它回弹的半路再截住——注意它始终从当前位置继续，速度从不跳变。</p>
             <div class="stat-grid">
-              <div class="stat"><span>Chapters</span><strong>05</strong></div>
-              <div class="stat"><span>Timeline</span><strong>80 yrs</strong></div>
-              <div class="stat"><span>Motion</span><strong>Scroll</strong></div>
-              <div class="stat"><span>Format</span><strong>Web</strong></div>
+              <div class="stat"><span>阻尼比 Damping</span><strong>0.78</strong></div>
+              <div class="stat"><span>响应 Response</span><strong>0.45s</strong></div>
+              <div class="stat"><span>自由区 Free zone</span><strong>90px</strong></div>
+              <div class="stat"><span>时钟 Clock</span><strong>rAF</strong></div>
             </div>
           </aside>
         </div>
-        <div class="hero-cue" aria-hidden="true"><i class="ph ph-mouse-scroll"></i><span>Scroll to begin</span></div>
+        <div class="hero-cue" aria-hidden="true"><i class="ph ph-mouse-scroll"></i><span>向下滚动</span></div>
       </section>
     </section>
 
-    <section class="story" id="history" aria-label="A brief history of computing">
+    <section class="story" id="principles" aria-label="流体界面的五个原则">
       <div class="story-stage">
-        <img class="story-media" src="assets/cosmic-hero-bg.webp" alt="" aria-hidden="true">
-        <div class="story-shade" aria-hidden="true"></div>
+        <div class="story-veil" aria-hidden="true"></div>
         <div class="story-shell">
-          <p class="story-kicker">Five moments that changed everything</p>
+          <p class="story-kicker">让界面有手感的五个原则</p>
           <div class="story-counter" aria-live="polite"><span>01</span> / 05</div>
 
           <article class="story-card" data-story-step="0">
-            <p class="story-era">1945 · The mainframe era</p>
-            <h2>Rooms became machines.</h2>
-            <p>Early electronic computers filled entire rooms. ENIAC used thousands of vacuum tubes to calculate in seconds what once took people days.</p>
-            <div class="story-fact"><i class="ph ph-lightning"></i><span>From human time to machine time</span></div>
+            <p class="story-era">01 · 响应 Response</p>
+            <h2>反馈发生在按下的瞬间。</h2>
+            <p>延迟一旦出现，"直接操纵"的感觉就会跌落悬崖。好的按钮在指尖落下的那一帧就亮起，而不是等你松手；拖动中的元素要与手指 1:1 同步，而不是在结束后才播放动画。本页所有按钮的按下反馈都控制在 70 毫秒内。</p>
+            <div class="story-fact"><i class="ph ph-lightning"></i><span>按下即响应，而非松手后</span></div>
           </article>
 
           <article class="story-card" data-story-step="1">
-            <p class="story-era">1947 · The transistor</p>
-            <h2>Silicon changed the scale.</h2>
-            <p>The transistor replaced fragile vacuum tubes with a tiny, reliable switch. Computers could become smaller, faster, and far more efficient.</p>
-            <div class="story-fact"><i class="ph ph-cpu"></i><span>The building block of modern electronics</span></div>
+            <p class="story-era">02 · 弹簧 Springs</p>
+            <h2>动画不是脚本，是对话。</h2>
+            <p>固定时长的动画无法回应新的输入，弹簧可以——新目标只是改变了力的方向，运动本身从不中断。苹果用两个参数描述它：阻尼比控制回弹，响应值控制快慢。日常 UI 用临界阻尼（1.0），只有甩出去的东西才配得上一点弹跳。</p>
+            <div class="story-fact"><i class="ph ph-waveform"></i><code>damping 1.0 · response 0.3–0.4s</code></div>
           </article>
 
           <article class="story-card" data-story-step="2">
-            <p class="story-era">1971–1984 · Personal computing</p>
-            <h2>Power moved to the desk.</h2>
-            <p>Microprocessors placed a computer's core on a single chip. The graphical interface then turned abstract commands into windows, icons, and a pointer.</p>
-            <div class="story-fact"><i class="ph ph-desktop"></i><span>Computing becomes personal</span></div>
+            <p class="story-era">03 · 液态玻璃 Liquid Glass</p>
+            <h2>玻璃不是装饰，是层级。</h2>
+            <p>半透明材质让内容从下方穿过，模糊与饱和度告诉你什么浮在上面。越大的表面越"厚"：更强的模糊、更深的阴影；顶部一道亮边是光落在玻璃上的痕迹。本页的导航栏与卡片就是这样构成的——毛玻璃、白色、一点香槟金。</p>
+            <div class="story-fact"><i class="ph ph-drop-half"></i><code>blur() + saturate() 同时出现</code></div>
           </article>
 
           <article class="story-card" data-story-step="3">
-            <p class="story-era">1989–2007 · The connected world</p>
-            <h2>The network became the place.</h2>
-            <p>The web connected documents, people, and ideas. Mobile computing compressed that connected world into a screen we could carry everywhere.</p>
-            <div class="story-fact"><i class="ph ph-globe-hemisphere-west"></i><span>Information without distance</span></div>
+            <p class="story-era">04 · 字体 Typography</p>
+            <h2>字距随字号而变。</h2>
+            <p>大标题的字母天生显得松散，需要收紧字距；正文回到零；小字反而要微微放宽以保证清晰。同一个 letter-spacing 用到底，总会在某个字号上出错。行高的规律相反：标题紧凑，正文舒展。本页大标题收紧了 3.5%，正文一分未动。</p>
+            <div class="story-fact"><i class="ph ph-text-aa"></i><code>display −0.035em · body 0</code></div>
           </article>
 
           <article class="story-card" data-story-step="4">
-            <p class="story-era">Today · Intelligent systems</p>
-            <h2>The interface begins to understand.</h2>
-            <p>Computers no longer only execute instructions. They can recognize patterns, generate ideas, and collaborate through language—while people decide what comes next.</p>
-            <div class="story-fact"><i class="ph ph-sparkle"></i><span>A new chapter is still being written</span></div>
+            <p class="story-era">05 · 包容 Reduce Motion</p>
+            <h2>减弱动效，不等于没有反馈。</h2>
+            <p>对动效敏感的人需要的是更温和的等价物：把滑动与弹跳换成短促的淡入淡出，保留帮助理解的透明度变化，收起视差与大位移。在系统里开启"减弱动态效果"，这个页面会安静下来——但每一次交互仍然有回应。</p>
+            <div class="story-fact"><i class="ph ph-hand-heart"></i><code>prefers-reduced-motion</code></div>
           </article>
 
-          <div class="story-nav" aria-label="Timeline chapters">
-            <button class="story-dot" type="button" data-story-jump="0" aria-label="Go to chapter 1"></button>
-            <button class="story-dot" type="button" data-story-jump="1" aria-label="Go to chapter 2"></button>
-            <button class="story-dot" type="button" data-story-jump="2" aria-label="Go to chapter 3"></button>
-            <button class="story-dot" type="button" data-story-jump="3" aria-label="Go to chapter 4"></button>
-            <button class="story-dot" type="button" data-story-jump="4" aria-label="Go to chapter 5"></button>
+          <div class="story-nav" aria-label="章节导航">
+            <button class="story-dot" type="button" data-story-jump="0" aria-label="第 1 章"></button>
+            <button class="story-dot" type="button" data-story-jump="1" aria-label="第 2 章"></button>
+            <button class="story-dot" type="button" data-story-jump="2" aria-label="第 3 章"></button>
+            <button class="story-dot" type="button" data-story-jump="3" aria-label="第 4 章"></button>
+            <button class="story-dot" type="button" data-story-jump="4" aria-label="第 5 章"></button>
           </div>
 
           <div class="story-progress" aria-hidden="true"><span></span></div>
@@ -570,29 +649,29 @@
       </div>
     </section>
 
-    <section class="features" id="features" aria-label="Design features">
+    <section class="features" id="reference" aria-label="速查与延伸">
       <div class="feature-grid">
         <article class="feature">
-          <i class="feature-icon ph ph-star-four" aria-hidden="true"></i>
-          <h3>Visual Direction</h3>
-          <p>The palette uses deep space blue, aqua, mint, and warm amber highlights for contrast, avoiding generic defaults and delivering a consistent cosmic atmosphere.</p>
+          <i class="feature-icon ph ph-gauge" aria-hidden="true"></i>
+          <h3>参数速查</h3>
+          <p>移动/归位用阻尼 1.0、响应 0.4s；抽屉与面板用阻尼 0.8、响应 0.3s。判断"甩回还是甩出"看松手时的速度方向，而不是位置。惯性投射用衰减率 0.998。</p>
         </article>
         <article class="feature">
-          <i class="feature-icon ph ph-planet" aria-hidden="true"></i>
-          <h3>Scroll Choreography</h3>
-          <p>Sticky scenes, continuous parallax, focus transitions, and chapter snapping turn the page into a guided visual story.</p>
+          <i class="feature-icon ph ph-hand-grabbing" aria-hidden="true"></i>
+          <h3>动手实验</h3>
+          <p>回到顶部抓住玻璃卡片：拖出 90px 后会遇到渐进的橡皮筋阻力；甩出去，弹簧会接住你手指的速度；半路截住它，运动无缝续接——这就是"可打断"。</p>
         </article>
         <article class="feature">
-          <i class="feature-icon ph ph-grid-four" aria-hidden="true"></i>
-          <h3>Responsive Build</h3>
-          <p>The structure collapses naturally from a multi-column desktop composition to a single-column mobile layout while preserving spacing, typography, and clarity.</p>
+          <i class="feature-icon ph ph-books" aria-hidden="true"></i>
+          <h3>延伸阅读</h3>
+          <p>WWDC 讲座《Designing Fluid Interfaces》与《The Details of UI Typography》是本页的源头；网页端的整理见 <a href="https://github.com/emilkowalski/skills" target="_blank" rel="noopener noreferrer">emilkowalski/skills</a>。</p>
         </article>
       </div>
     </section>
   </main>
 
   <footer>
-    <span>Cosmic Geometry Theme · Frontend Redesign</span>
+    <span>玻璃与弹簧 · 基于苹果设计原则的交互科普</span>
     <span>Designed for GitHub Pages</span>
   </footer>
 
@@ -600,21 +679,50 @@
     (() => {
       const root = document.documentElement;
       const heroScroll = document.querySelector('.hero-scroll');
-      const hero = document.querySelector('.hero');
       const story = document.querySelector('.story');
       const storyCards = [...document.querySelectorAll('.story-card')];
       const storyDots = [...document.querySelectorAll('.story-dot')];
       const storyCounter = document.querySelector('.story-counter span');
       const features = document.querySelector('.features');
+      const snapshot = document.querySelector('.snapshot');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       let frame = 0;
-      let currentHero = 0;
-      let currentStory = 0;
-      let targetHero = 0;
-      let targetStory = 0;
+      let lastTime = 0;
       let activeStep = -1;
 
       const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+      /* ---- Spring, in Apple's designer parameterization (damping ratio + response) ----
+         Interruptible by construction: re-targeting keeps current value AND velocity. */
+      class Spring {
+        constructor(response, dampingRatio, epsilon) {
+          this.omega = (2 * Math.PI) / response;
+          this.zeta = dampingRatio;
+          this.epsilon = epsilon;
+          this.value = 0;
+          this.velocity = 0;
+          this.target = 0;
+        }
+        step(dt) {
+          const accel = -this.omega * this.omega * (this.value - this.target)
+                        - 2 * this.zeta * this.omega * this.velocity;
+          this.velocity += accel * dt;
+          this.value += this.velocity * dt;
+          if (this.settled) { this.value = this.target; this.velocity = 0; }
+        }
+        get settled() {
+          return Math.abs(this.value - this.target) < this.epsilon
+              && Math.abs(this.velocity) < this.epsilon * 12;
+        }
+      }
+
+      // Scroll-linked motion: critically damped (no overshoot on ambient UI)
+      const heroSpring = new Spring(.55, 1, .0004);
+      const storySpring = new Spring(.5, 1, .0004);
+      // Card return: a flick carried momentum, so a little bounce is earned
+      const cardX = new Spring(.45, .78, .05);
+      const cardY = new Spring(.45, .78, .05);
+
       const sectionProgress = (section) => {
         const rect = section.getBoundingClientRect();
         const distance = Math.max(1, section.offsetHeight - window.innerHeight);
@@ -622,7 +730,7 @@
       };
 
       const renderStory = (progress) => {
-        const timeline = progress * (storyCards.length - 1);
+        const timeline = clamp(progress) * (storyCards.length - 1);
         const nextActive = clamp(Math.round(timeline), 0, storyCards.length - 1);
 
         storyCards.forEach((card, index) => {
@@ -654,24 +762,122 @@
       const readScroll = () => {
         const maxScroll = Math.max(1, root.scrollHeight - window.innerHeight);
         root.style.setProperty('--page-progress', Math.min(1, window.scrollY / maxScroll));
-        targetHero = reducedMotion.matches ? 0 : sectionProgress(heroScroll);
-        targetStory = reducedMotion.matches ? 0 : sectionProgress(story);
+        heroSpring.target = reducedMotion.matches ? 0 : sectionProgress(heroScroll);
+        storySpring.target = reducedMotion.matches ? 0 : sectionProgress(story);
       };
 
-      const animate = () => {
-        currentHero += (targetHero - currentHero) * .13;
-        currentStory += (targetStory - currentStory) * .11;
-        root.style.setProperty('--hero-progress', currentHero.toFixed(4));
-        root.style.setProperty('--story-progress', currentStory.toFixed(4));
-        renderStory(currentStory);
+      /* ---- Draggable snapshot card: direct manipulation demo ---- */
+      const drag = {
+        active: false, pending: false, pointerId: null,
+        startPointerX: 0, startPointerY: 0,
+        startCardX: 0, startCardY: 0,
+        history: []
+      };
+      const FREE_RADIUS = 90;      // 1:1 zone before resistance kicks in
+      const HYSTERESIS = 8;        // px of movement before the drag commits
 
-        if (Math.abs(targetHero - currentHero) > .0005 || Math.abs(targetStory - currentStory) > .0005) {
-          frame = requestAnimationFrame(animate);
-        } else {
-          currentHero = targetHero;
-          currentStory = targetStory;
-          frame = 0;
+      // Progressive resistance past a soft boundary — never a hard stop
+      const rubberband = (overshoot, dimension = 420, constant = .55) =>
+        (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+
+      const withResistance = (d) => {
+        const mag = Math.abs(d);
+        if (mag <= FREE_RADIUS) return d;
+        return Math.sign(d) * (FREE_RADIUS + rubberband(mag - FREE_RADIUS));
+      };
+
+      const setDragVars = (x, y) => {
+        snapshot.style.setProperty('--drag-x', x.toFixed(2) + 'px');
+        snapshot.style.setProperty('--drag-y', y.toFixed(2) + 'px');
+      };
+
+      const releaseVelocity = () => {
+        const h = drag.history;
+        if (h.length < 2) return { vx: 0, vy: 0 };
+        const newest = h[h.length - 1];
+        let oldest = h[0];
+        for (let i = h.length - 2; i >= 0; i--) {
+          if (newest.t - h[i].t >= 60) { oldest = h[i]; break; }
         }
+        const dt = Math.max(1, newest.t - oldest.t) / 1000;
+        return { vx: (newest.x - oldest.x) / dt, vy: (newest.y - oldest.y) / dt };
+      };
+
+      if (snapshot && !reducedMotion.matches) {
+        snapshot.addEventListener('pointerdown', (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          drag.pending = true;
+          drag.active = false;
+          drag.pointerId = e.pointerId;
+          drag.startPointerX = e.clientX;
+          drag.startPointerY = e.clientY;
+          // Grab from the presentation value — interrupt the spring mid-flight, no jump
+          drag.startCardX = cardX.value;
+          drag.startCardY = cardY.value;
+          drag.history = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+          snapshot.setPointerCapture(e.pointerId);
+        });
+
+        snapshot.addEventListener('pointermove', (e) => {
+          if (e.pointerId !== drag.pointerId || (!drag.pending && !drag.active)) return;
+          const dx = e.clientX - drag.startPointerX;
+          const dy = e.clientY - drag.startPointerY;
+          if (drag.pending && Math.hypot(dx, dy) > HYSTERESIS) {
+            drag.pending = false;
+            drag.active = true;
+            snapshot.classList.add('is-dragging');
+          }
+          if (!drag.active) return;
+          drag.history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+          if (drag.history.length > 8) drag.history.shift();
+          // 1:1 tracking, honoring where they grabbed it
+          cardX.value = withResistance(drag.startCardX + dx);
+          cardY.value = withResistance(drag.startCardY + dy);
+          setDragVars(cardX.value, cardY.value);
+        });
+
+        const endDrag = (e) => {
+          if (e.pointerId !== drag.pointerId) return;
+          const wasActive = drag.active;
+          drag.pending = false;
+          drag.active = false;
+          drag.pointerId = null;
+          snapshot.classList.remove('is-dragging');
+          if (!wasActive) return;
+          // Velocity handoff: the spring continues at the finger's exact speed
+          const { vx, vy } = releaseVelocity();
+          cardX.velocity = vx;
+          cardY.velocity = vy;
+          cardX.target = 0;
+          cardY.target = 0;
+          schedule();
+        };
+        snapshot.addEventListener('pointerup', endDrag);
+        snapshot.addEventListener('pointercancel', endDrag);
+        snapshot.addEventListener('dragstart', (e) => e.preventDefault());
+      }
+
+      /* ---- One display-synced loop drives every spring ---- */
+      const animate = (now) => {
+        const dt = Math.min(.032, (now - lastTime) / 1000 || .016);
+        lastTime = now;
+
+        heroSpring.step(dt);
+        storySpring.step(dt);
+        root.style.setProperty('--hero-progress', heroSpring.value.toFixed(4));
+        root.style.setProperty('--story-progress', clamp(storySpring.value).toFixed(4));
+        renderStory(storySpring.value);
+
+        if (!drag.active) {
+          cardX.step(dt);
+          cardY.step(dt);
+          setDragVars(cardX.value, cardY.value);
+        }
+
+        const busy = !heroSpring.settled || !storySpring.settled
+                  || (!drag.active && (!cardX.settled || !cardY.settled));
+        frame = busy ? requestAnimationFrame(animate) : 0;
+        if (!busy) lastTime = 0;
       };
 
       const schedule = () => {
@@ -693,11 +899,11 @@
 
       featureObserver.observe(features);
       readScroll();
-      currentHero = targetHero;
-      currentStory = targetStory;
-      root.style.setProperty('--hero-progress', currentHero.toFixed(4));
-      root.style.setProperty('--story-progress', currentStory.toFixed(4));
-      renderStory(currentStory);
+      heroSpring.value = heroSpring.target;
+      storySpring.value = storySpring.target;
+      root.style.setProperty('--hero-progress', heroSpring.value.toFixed(4));
+      root.style.setProperty('--story-progress', clamp(storySpring.value).toFixed(4));
+      renderStory(storySpring.value);
       window.addEventListener('scroll', schedule, { passive: true });
       window.addEventListener('resize', schedule);
       reducedMotion.addEventListener?.('change', schedule);
