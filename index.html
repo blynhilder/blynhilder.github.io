@@ -16,8 +16,8 @@
       --gold: #a2782c;          /* text-safe champagne */
       --gold-bright: #d3ae6b;
       --gold-pale: #efdfc0;
-      --glass: rgba(255, 255, 255, .58);
-      --glass-heavy: rgba(255, 255, 255, .72);
+      --glass: rgba(255, 255, 255, .38);
+      --glass-heavy: rgba(255, 255, 255, .52);
       --hairline: rgba(29, 29, 31, .1);
       --page-progress: 0;
       --hero-progress: 0;
@@ -480,6 +480,64 @@
 
     footer { padding: 22px max(7vw, 48px) 36px; display: flex; justify-content: space-between; gap: 18px; color: var(--faint); background: var(--bg); font-size: .74rem; }
 
+    /* ---------- liquid lens gallery ---------- */
+    .snapshot { min-height: 470px; padding: 24px; overflow: hidden; }
+    .lens-visual { position: relative; height: 292px; margin: 18px 0 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.82); border-radius: 20px; background: rgba(255,255,255,.22); box-shadow: inset 0 1px 0 white, 0 18px 50px rgba(84,70,48,.09); }
+    .lens-visual img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.03); transition: transform .7s var(--spring-smooth), filter .45s ease; }
+    .snapshot:hover .lens-visual img { transform: scale(1.08) rotate(-1deg); }
+    .lens-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: .78rem; }
+    .lens-caption span:first-child { display: inline-flex; align-items: center; gap: 8px; color: var(--gold); font-weight: 750; }
+    .hero-material-dock { position: absolute; z-index: 4; left: 50%; bottom: 28px; width: min(1200px,calc(100% - 84px)); padding: 10px; display: grid; grid-template-columns: 1.4fr repeat(6,1fr); gap: 8px; border: 1px solid rgba(255,255,255,.9); border-radius: 22px; background: rgba(255,255,255,.36); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); box-shadow: inset 0 1px 0 white, 0 22px 60px rgba(84,68,43,.1); transform: translateX(-50%) translateY(calc(var(--hero-progress) * 60px)); opacity: calc(1 - var(--hero-progress) * 1.6); }
+    .hero-dock-intro { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
+    .hero-dock-intro strong { font-size: .92rem; }
+    .hero-dock-intro span { margin-top: 5px; color: var(--muted); font-size: .72rem; }
+    .hero-material { min-height: 82px; padding: 8px; display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.66); border-radius: 14px; background: rgba(255,255,255,.28); font-size: .7rem; font-weight: 700; transition: transform .16s var(--spring-bounce), background .2s ease; }
+    .hero-material:hover { transform: translateY(-3px); background: rgba(255,255,255,.72); }
+    .hero-material img { width: 38px; height: 38px; object-fit: cover; border-radius: 50%; }
+    .hero-cue { display: none; }
+    .materials { position: relative; z-index: 4; padding: 110px max(6vw,42px) 130px; background: rgba(248,247,244,.82); }
+    .section-head { width: min(1200px,100%); margin: 0 auto 46px; display: flex; align-items: end; justify-content: space-between; gap: 42px; }
+    .section-head .eyebrow { margin-bottom: 14px; }
+    .section-head h2 { max-width: 760px; margin: 0; font-size: clamp(2.8rem,5.4vw,5.7rem); line-height: .98; letter-spacing: -.055em; }
+    .section-head > p { max-width: 390px; margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.75; }
+    .material-stage { --material-blur: 8px; --material-sat: 1.18; --material-opacity: .92; width: min(1200px,100%); min-height: 620px; margin: 0 auto; padding: 26px; border: 1px solid rgba(255,255,255,.9); border-radius: 34px; background: rgba(255,255,255,.34); backdrop-filter: blur(34px) saturate(185%); -webkit-backdrop-filter: blur(34px) saturate(185%); box-shadow: inset 0 1px 0 white, 0 34px 90px rgba(81,66,41,.12); }
+    .material-preview { position: relative; min-height: 430px; overflow: hidden; border: 1px solid rgba(255,255,255,.84); border-radius: 26px; background: rgba(255,255,255,.25); }
+    .material-preview img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; opacity: var(--material-opacity); filter: blur(var(--material-blur)) saturate(var(--material-sat)); transform: scale(1.04); transition: filter .5s var(--spring-smooth), opacity .4s ease, transform .8s var(--spring-smooth); }
+    .material-stage.is-changing .material-preview img { transform: scale(1.1) rotate(.7deg); }
+    .material-copy { position: absolute; z-index: 2; left: 34px; right: 34px; bottom: 30px; display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+    .material-copy h3 { margin: 0; font-size: clamp(2rem,4vw,4rem); letter-spacing: -.05em; }
+    .material-copy p { max-width: 410px; margin: 0; color: #625b51; line-height: 1.65; }
+    .material-dock { margin-top: 18px; padding: 12px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 10px; border: 1px solid rgba(255,255,255,.86); border-radius: 22px; background: rgba(255,255,255,.36); backdrop-filter: blur(24px) saturate(175%); -webkit-backdrop-filter: blur(24px) saturate(175%); }
+    .material-button { min-height: 88px; padding: 14px 10px; border: 1px solid transparent; border-radius: 16px; background: rgba(255,255,255,.26); color: var(--muted); cursor: pointer; font: inherit; transition: transform 140ms var(--spring-bounce), border-color .2s ease, background .2s ease, color .2s ease; }
+    .material-button i { display: block; margin-bottom: 9px; font-size: 1.45rem; }
+    .material-button span { font-size: .78rem; font-weight: 700; }
+    .material-button:hover { transform: translateY(-3px); background: rgba(255,255,255,.62); }
+    .material-button.is-active { border-color: rgba(180,135,55,.62); background: rgba(255,255,255,.76); color: var(--gold); box-shadow: 0 8px 25px rgba(120,86,26,.1); }
+    .labs { padding: 130px max(6vw,42px); background: #f1f2f5; }
+    .lab-shell { width: min(1200px,100%); margin: 0 auto; }
+    .lab-grid { display: grid; grid-template-columns: minmax(280px,.78fr) minmax(440px,1.35fr); gap: 22px; }
+    .lab-panel { padding: 30px; border: 1px solid rgba(255,255,255,.92); border-radius: 28px; background: rgba(255,255,255,.4); backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); box-shadow: inset 0 1px 0 white, 0 28px 80px rgba(55,66,80,.12); }
+    .lab-panel h3 { margin: 0 0 10px; font-size: 1.45rem; letter-spacing: -.035em; }
+    .lab-panel > p { margin: 0 0 28px; color: var(--muted); line-height: 1.65; }
+    .control { margin: 0 0 24px; }
+    .control label { margin-bottom: 10px; display: flex; justify-content: space-between; gap: 18px; font-size: .8rem; font-weight: 700; }
+    .control output { color: var(--gold); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
+    .glass-bench { min-height: 540px; display: grid; place-items: center; overflow: hidden; }
+    .bench-card { width: min(430px,76%); aspect-ratio: 1.14; overflow: hidden; border: 1px solid rgba(255,255,255,.9); border-radius: 30px; background: rgba(255,255,255,var(--bench-opacity,.48)); backdrop-filter: blur(var(--bench-blur,24px)) saturate(var(--bench-sat,170%)); -webkit-backdrop-filter: blur(var(--bench-blur,24px)) saturate(var(--bench-sat,170%)); box-shadow: inset 0 1px 0 white, 0 38px 80px rgba(52,68,88,.16); transform: translateX(var(--spring-x,0px)) scale(var(--bench-scale,1)); will-change: transform; }
+    .bench-card img { width: 100%; height: 100%; object-fit: cover; opacity: .72; mix-blend-mode: multiply; }
+    .lab-action { width: 100%; min-height: 52px; border: 0; border-radius: 15px; background: var(--gold); color: white; font: inherit; font-weight: 760; cursor: pointer; transition: transform 100ms ease, box-shadow .25s ease; box-shadow: 0 14px 34px rgba(162,120,44,.2); }
+    .lab-action:active { transform: scale(.97); }
+    .type-lab { padding: 150px max(6vw,42px); background: #fbfaf8; }
+    .type-shell { width: min(1200px,100%); margin: 0 auto; display: grid; grid-template-columns: 1.45fr .55fr; gap: 26px; }
+    .type-stage { min-height: 640px; padding: clamp(34px,6vw,78px); display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,.92); border-radius: 34px; background: rgba(255,255,255,.42); backdrop-filter: blur(34px) saturate(170%); -webkit-backdrop-filter: blur(34px) saturate(170%); box-shadow: inset 0 1px 0 white, 0 32px 90px rgba(90,72,48,.1); }
+    .type-sample { margin: 0; font-size: clamp(4rem,9vw,9rem); line-height: .9; letter-spacing: var(--type-track,-.05em); font-weight: var(--type-weight,700); }
+    .type-meta { color: var(--muted); line-height: 1.7; }
+    .finale { min-height: 86svh; padding: 140px 24px; display: grid; place-items: center; text-align: center; background: #edf1f7; }
+    .finale-inner { width: min(900px,100%); padding: 70px 32px; border: 1px solid rgba(255,255,255,.96); border-radius: 40px; background: rgba(255,255,255,.38); backdrop-filter: blur(40px) saturate(185%); -webkit-backdrop-filter: blur(40px) saturate(185%); box-shadow: inset 0 1px 0 white, 0 34px 100px rgba(67,83,107,.13); }
+    .finale h2 { margin: 0; font-size: clamp(3rem,7vw,7rem); line-height: .98; letter-spacing: -.06em; }
+    .finale p { max-width: 620px; margin: 26px auto 0; color: var(--muted); font-size: 1.05rem; line-height: 1.8; }
+
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
     ::selection { background: rgba(211, 174, 107, .35); }
 
@@ -491,6 +549,11 @@
       .snapshot { width: min(560px, 100%); justify-self: end; transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(1deg); }
       .story-shell { width: min(820px, calc(100% - 56px)); }
       .story-card { width: calc(100% - 72px); }
+      .section-head { align-items: start; flex-direction: column; }
+      .lab-grid, .type-shell { grid-template-columns: 1fr; }
+      .material-dock { grid-template-columns: repeat(3,1fr); }
+      .hero-material-dock { grid-template-columns: repeat(3,1fr); }
+      .hero-dock-intro { display: none; }
     }
 
     @media (max-width: 720px) {
@@ -505,6 +568,7 @@
       .lede { font-size: .98rem; }
       .snapshot { min-height: auto; padding: 25px; border-radius: 22px; }
       .hero-cue { display: none; }
+      .hero-material-dock { display: none; }
       .story { height: 440svh; }
       .story-stage { min-height: 560px; }
       .story-shell { width: calc(100% - 44px); height: 78svh; min-height: 560px; }
@@ -514,6 +578,15 @@
       .story-nav { right: -12px; }
       .story-kicker { max-width: calc(100% - 54px); }
       .story-counter { top: 34px; right: 4px; }
+      .materials, .labs, .type-lab { padding: 88px 22px; }
+      .material-stage { padding: 12px; border-radius: 24px; }
+      .material-preview { min-height: 520px; border-radius: 20px; }
+      .material-copy { left: 22px; right: 22px; bottom: 22px; align-items: start; flex-direction: column; }
+      .material-dock { grid-template-columns: repeat(2,1fr); }
+      .lab-panel { padding: 22px; border-radius: 22px; }
+      .glass-bench { min-height: 420px; }
+      .type-stage { min-height: 520px; }
+      .type-sample { font-size: clamp(3.5rem,20vw,6.3rem); }
       .feature-grid { grid-template-columns: 1fr; }
       .features { padding: 44px 22px 54px; }
       .feature, .feature + .feature { padding: 28px 0; border-left: 0; border-top: 1px solid var(--hairline); }
@@ -529,7 +602,7 @@
       .button, .nav-repo, .story-dot::before { transition-duration: 1ms !important; }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; }
-      .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
+      .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil, .material-preview img, .bench-card { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
       .story { height: auto; }
       .story-stage { position: relative; height: auto; padding: 120px 0; }
       .story-shell { height: auto; }
@@ -539,7 +612,7 @@
     }
 
     @media (prefers-reduced-transparency: reduce) {
-      .nav-shell, .snapshot, .features, .button.secondary, .story-fact { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
+      .nav-shell, .snapshot, .features, .button.secondary, .story-fact, .material-stage, .material-dock, .lab-panel, .type-stage, .finale-inner { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
     }
 
     @media (prefers-contrast: more) {
@@ -580,18 +653,43 @@
           </div>
 
           <aside class="snapshot" aria-labelledby="snapshot-title">
-            <h2 id="snapshot-title">手感实验台 <small>Physics Bench</small></h2>
-            <p>这张玻璃卡片连着两根真正的弹簧。抓起、甩出、在它回弹的半路再截住——注意它始终从当前位置继续，速度从不跳变。</p>
-            <div class="stat-grid">
-              <div class="stat"><span>阻尼比 Damping</span><strong>0.78</strong></div>
-              <div class="stat"><span>响应 Response</span><strong>0.45s</strong></div>
-              <div class="stat"><span>自由区 Free zone</span><strong>90px</strong></div>
-              <div class="stat"><span>时钟 Clock</span><strong>rAF</strong></div>
-            </div>
+            <h2 id="snapshot-title">可拖动玻璃样本 <small>Liquid Lens</small></h2>
+            <div class="lens-visual"><img src="assets/liquid-lens-hero.webp" alt="透明到磨砂的液态玻璃光学样本"></div>
+            <div class="lens-caption"><span><i class="ph ph-hand-grabbing" aria-hidden="true"></i>抓起并甩动</span><span>观察折射与高光</span></div>
           </aside>
+        </div>
+        <div class="hero-material-dock" aria-label="玻璃材质快捷入口">
+          <div class="hero-dock-intro"><strong>探索材料</strong><span>选择一种光学性格</span></div>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>超白玻璃</span></a>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>磨砂玻璃</span></a>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>水波纹</span></a>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>夹丝玻璃</span></a>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>茶色玻璃</span></a>
+          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>彩釉玻璃</span></a>
         </div>
         <div class="hero-cue" aria-hidden="true"><i class="ph ph-mouse-scroll"></i><span>向下滚动</span></div>
       </section>
+    </section>
+
+    <section class="materials" id="materials" aria-labelledby="materials-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Material Gallery · 材质画廊</p><h2 id="materials-title">透明不是一个数值，<br>而是一整套光学语言。</h2></div>
+        <p>选择一种材质，观察模糊、饱和度与透光率如何共同改变层级。每个样本都使用同一张真实光学素材，只改变界面参数。</p>
+      </div>
+      <div class="material-stage" data-material-stage>
+        <div class="material-preview">
+          <img src="assets/liquid-lens-hero.webp" alt="当前玻璃材质预览">
+          <div class="material-copy"><div><p class="eyebrow">当前材质</p><h3 data-material-name>超白玻璃</h3></div><p data-material-description>高透光、低模糊，边缘折射清晰。适合轻量导航与短暂浮层。</p></div>
+        </div>
+        <div class="material-dock" aria-label="选择玻璃材质">
+          <button class="material-button is-active" type="button" data-name="超白玻璃" data-description="高透光、低模糊，边缘折射清晰。适合轻量导航与短暂浮层。" data-blur="2" data-sat="1.12" data-opacity=".95"><i class="ph ph-circle" aria-hidden="true"></i><span>超白玻璃</span></button>
+          <button class="material-button" type="button" data-name="磨砂玻璃" data-description="更厚的模糊让背景退后一步，适合工具面板与持续停留的控件。" data-blur="12" data-sat="1.05" data-opacity=".86"><i class="ph ph-snowflake" aria-hidden="true"></i><span>磨砂玻璃</span></button>
+          <button class="material-button" type="button" data-name="水波纹玻璃" data-description="更高饱和度与轻微放大模拟流动折射，用在需要强调的焦点区域。" data-blur="6" data-sat="1.5" data-opacity=".9"><i class="ph ph-waves" aria-hidden="true"></i><span>水波纹</span></button>
+          <button class="material-button" type="button" data-name="夹丝玻璃" data-description="细密纹理提高边界感，同时保留内容从下方穿过的空间关系。" data-blur="9" data-sat=".9" data-opacity=".82"><i class="ph ph-grid-nine" aria-hidden="true"></i><span>夹丝玻璃</span></button>
+          <button class="material-button" type="button" data-name="茶色玻璃" data-description="温暖色偏让浮层更有重量，适合确认、收藏与高价值动作。" data-blur="5" data-sat="1.8" data-opacity=".74"><i class="ph ph-sun" aria-hidden="true"></i><span>茶色玻璃</span></button>
+          <button class="material-button" type="button" data-name="彩釉玻璃" data-description="高饱和度只应少量使用，用来标记状态，而不是铺满整个界面。" data-blur="8" data-sat="2.2" data-opacity=".68"><i class="ph ph-sparkle" aria-hidden="true"></i><span>彩釉玻璃</span></button>
+        </div>
+      </div>
     </section>
 
     <section class="story" id="principles" aria-label="流体界面的五个原则">
@@ -649,6 +747,44 @@
       </div>
     </section>
 
+    <section class="labs" id="lab" aria-labelledby="lab-title">
+      <div class="lab-shell">
+        <div class="section-head">
+          <div><p class="eyebrow">Glass Lab · 参数实验台</p><h2 id="lab-title">把玻璃拆开，<br>亲手调一遍。</h2></div>
+          <p>拖动参数不是为了找到唯一答案，而是建立直觉：模糊控制厚度，透明度控制距离，饱和度控制光感。</p>
+        </div>
+        <div class="lab-grid">
+          <div class="lab-panel">
+            <h3>材质参数</h3><p>三个数值会实时作用到右侧样本。按下按钮还能观察触摸反馈与弹簧回弹。</p>
+            <div class="control"><label for="blur-control">模糊强度 <output id="blur-output">24px</output></label><input id="blur-control" type="range" min="0" max="48" value="24"></div>
+            <div class="control"><label for="opacity-control">玻璃透明度 <output id="opacity-output">48%</output></label><input id="opacity-control" type="range" min="18" max="82" value="48"></div>
+            <div class="control"><label for="saturation-control">背景饱和度 <output id="saturation-output">170%</output></label><input id="saturation-control" type="range" min="80" max="240" value="170"></div>
+            <div class="control"><label for="spring-control">回弹力度 <output id="spring-output">0.72</output></label><input id="spring-control" type="range" min="35" max="95" value="72"></div>
+            <button class="lab-action" type="button" data-spring-trigger><i class="ph ph-hand-tap" aria-hidden="true"></i> 按下试试</button>
+          </div>
+          <div class="lab-panel glass-bench" aria-label="交互玻璃样本">
+            <div class="bench-card" data-bench-card><img src="assets/liquid-lens-hero.webp" alt="可调节的玻璃光学样本"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="type-lab" id="typography" aria-labelledby="type-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Typography Lab · 字体实验</p><h2 id="type-title">字距不是装饰，<br>是阅读的呼吸。</h2></div>
+        <p>大字要更紧，正文要舒展，小字反而需要一点空气。拖动控制器，直接看同一句话如何改变气质。</p>
+      </div>
+      <div class="type-shell">
+        <div class="type-stage"><p class="type-sample" data-type-sample>光落在<br>玻璃边缘。</p><p class="type-meta">同一套系统字体，在字号、字重与字距的共同作用下，可以从“说明文字”变成有节奏的空间构图。</p></div>
+        <div class="lab-panel type-controls">
+          <h3>排版参数</h3><p>变化会立即应用到左侧标题。</p>
+          <div class="control"><label for="tracking-control">字距 <output id="tracking-output">−5%</output></label><input id="tracking-control" type="range" min="-10" max="8" value="-5"></div>
+          <div class="control"><label for="weight-control">字重 <output id="weight-output">700</output></label><input id="weight-control" type="range" min="400" max="800" step="50" value="700"></div>
+          <div class="control"><label for="leading-control">行高 <output id="leading-output">0.90</output></label><input id="leading-control" type="range" min="82" max="120" value="90"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="features" id="reference" aria-label="速查与延伸">
       <div class="feature-grid">
         <article class="feature">
@@ -668,6 +804,10 @@
         </article>
       </div>
     </section>
+
+    <section class="finale" aria-labelledby="finale-title">
+      <div class="finale-inner"><p class="eyebrow">End of the glass, start of the interface</p><h2 id="finale-title">手感不是特效，<br>是每一次回应。</h2><p>真正的苹果感来自连续、可打断、可理解的反馈。玻璃负责层级，弹簧负责时间，字体负责秩序，而你负责决定它们什么时候出现。</p><div class="actions" style="justify-content:center"><a class="button primary" href="#top">回到顶部 <i class="ph ph-arrow-up" aria-hidden="true"></i></a><a class="button secondary" href="#materials">再玩一次材质</a></div></div>
+    </section>
   </main>
 
   <footer>
@@ -685,6 +825,20 @@
       const storyCounter = document.querySelector('.story-counter span');
       const features = document.querySelector('.features');
       const snapshot = document.querySelector('.snapshot');
+      const materialStage = document.querySelector('[data-material-stage]');
+      const materialButtons = [...document.querySelectorAll('.material-button')];
+      const materialName = document.querySelector('[data-material-name]');
+      const materialDescription = document.querySelector('[data-material-description]');
+      const benchCard = document.querySelector('[data-bench-card]');
+      const springTrigger = document.querySelector('[data-spring-trigger]');
+      const blurControl = document.querySelector('#blur-control');
+      const opacityControl = document.querySelector('#opacity-control');
+      const saturationControl = document.querySelector('#saturation-control');
+      const springControl = document.querySelector('#spring-control');
+      const typeSample = document.querySelector('[data-type-sample]');
+      const trackingControl = document.querySelector('#tracking-control');
+      const weightControl = document.querySelector('#weight-control');
+      const leadingControl = document.querySelector('#leading-control');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       let frame = 0;
       let lastTime = 0;
@@ -722,6 +876,7 @@
       // Card return: a flick carried momentum, so a little bounce is earned
       const cardX = new Spring(.45, .78, .05);
       const cardY = new Spring(.45, .78, .05);
+      const benchSpring = new Spring(.62, .72, .05);
 
       const sectionProgress = (section) => {
         const rect = section.getBoundingClientRect();
@@ -857,6 +1012,69 @@
         snapshot.addEventListener('dragstart', (e) => e.preventDefault());
       }
 
+      /* ---- Material gallery: one source asset, six optical treatments ---- */
+      materialButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          materialButtons.forEach((item) => item.classList.toggle('is-active', item === button));
+          materialStage.style.setProperty('--material-blur', `${button.dataset.blur}px`);
+          materialStage.style.setProperty('--material-sat', button.dataset.sat);
+          materialStage.style.setProperty('--material-opacity', button.dataset.opacity);
+          materialName.textContent = button.dataset.name;
+          materialDescription.textContent = button.dataset.description;
+          materialStage.classList.add('is-changing');
+          window.setTimeout(() => materialStage.classList.remove('is-changing'), 360);
+        });
+      });
+
+      const bindRange = (input, output, render) => {
+        if (!input || !output) return;
+        const update = () => { output.textContent = render(input.value); };
+        input.addEventListener('input', update);
+        update();
+      };
+
+      bindRange(blurControl, document.querySelector('#blur-output'), (value) => {
+        benchCard.style.setProperty('--bench-blur', `${value}px`);
+        return `${value}px`;
+      });
+      bindRange(opacityControl, document.querySelector('#opacity-output'), (value) => {
+        benchCard.style.setProperty('--bench-opacity', (value / 100).toFixed(2));
+        return `${value}%`;
+      });
+      bindRange(saturationControl, document.querySelector('#saturation-output'), (value) => {
+        benchCard.style.setProperty('--bench-sat', `${value}%`);
+        return `${value}%`;
+      });
+      bindRange(springControl, document.querySelector('#spring-output'), (value) => {
+        benchSpring.zeta = value / 100;
+        return (value / 100).toFixed(2);
+      });
+
+      springTrigger?.addEventListener('click', () => {
+        if (reducedMotion.matches) {
+          benchCard.style.setProperty('--bench-scale', '.96');
+          window.setTimeout(() => benchCard.style.setProperty('--bench-scale', '1'), 120);
+          return;
+        }
+        benchSpring.value = -72;
+        benchSpring.velocity = 980;
+        benchSpring.target = 0;
+        schedule();
+      });
+
+      bindRange(trackingControl, document.querySelector('#tracking-output'), (value) => {
+        typeSample.style.setProperty('--type-track', `${value / 100}em`);
+        return `${value < 0 ? '−' : '+'}${Math.abs(value)}%`;
+      });
+      bindRange(weightControl, document.querySelector('#weight-output'), (value) => {
+        typeSample.style.setProperty('--type-weight', value);
+        return value;
+      });
+      bindRange(leadingControl, document.querySelector('#leading-output'), (value) => {
+        typeSample.style.lineHeight = (value / 100).toFixed(2);
+        return (value / 100).toFixed(2);
+      });
+
       /* ---- One display-synced loop drives every spring ---- */
       const animate = (now) => {
         const dt = Math.min(.032, (now - lastTime) / 1000 || .016);
@@ -873,9 +1091,12 @@
           cardY.step(dt);
           setDragVars(cardX.value, cardY.value);
         }
+        benchSpring.step(dt);
+        benchCard?.style.setProperty('--spring-x', `${benchSpring.value.toFixed(2)}px`);
 
         const busy = !heroSpring.settled || !storySpring.settled
-                  || (!drag.active && (!cardX.settled || !cardY.settled));
+                  || (!drag.active && (!cardX.settled || !cardY.settled))
+                  || !benchSpring.settled;
         frame = busy ? requestAnimationFrame(animate) : 0;
         if (!busy) lastTime = 0;
       };
