@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f5f7">
-  <meta name="description" content="玻璃与弹簧 — 一份可以上手玩的交互科普：苹果如何用物理、材质与字体设计界面的手感。">
-  <title>玻璃与弹簧 — 苹果设计手感的交互科普</title>
+  <meta name="description" content="格物志 — 一个材料系学生的知识地图：晶格与裂纹、方程与算法、网络与诗，装在一层液态玻璃里。">
+  <title>格物志 — 从原子到文字</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
   <style>
     :root {
@@ -13,16 +13,16 @@
       --ink: #1d1d1f;
       --muted: #6e6e73;
       --faint: #86868b;
-      --gold: #a2782c;          /* text-safe champagne */
+      --gold: #a2782c;
       --gold-bright: #d3ae6b;
-      --gold-pale: #efdfc0;
-      --glass: rgba(255, 255, 255, .38);
-      --glass-heavy: rgba(255, 255, 255, .52);
+      --glass: rgba(255, 255, 255, .58);
+      --glass-heavy: rgba(255, 255, 255, .72);
       --hairline: rgba(29, 29, 31, .1);
       --page-progress: 0;
       --hero-progress: 0;
       --story-progress: 0;
-      /* Apple-style motion tokens: smooth = critically damped, bounce = momentum-driven overshoot */
+      --mat-progress: 0;
+      --sheet-p: 0;
       --spring-smooth: cubic-bezier(.22, 1, .36, 1);
       --spring-bounce: cubic-bezier(.34, 1.45, .64, 1);
       color-scheme: light;
@@ -34,6 +34,8 @@
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; background: var(--bg); }
     body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--bg); color: var(--ink); }
+    body.sheet-open { overflow: hidden; }
+    button { font: inherit; }
     a { color: inherit; text-decoration: none; }
     button, a { -webkit-tap-highlight-color: transparent; }
 
@@ -47,59 +49,160 @@
       background: linear-gradient(90deg, #c9a35a, #e7cd9a, #c9a35a);
     }
 
-    /* ---------- floating glass nav ---------- */
-    .nav-wrap {
+    /* ---------- Dynamic Island ---------- */
+    .island {
       position: fixed;
-      z-index: 90;
-      top: 24px;
+      z-index: 96;
+      top: 14px;
       left: 50%;
-      width: min(520px, calc(100% - 36px));
-      transform: translateX(-50%);
-    }
-
-    .nav-shell {
-      min-height: 56px;
-      padding: 8px 10px 8px 22px;
+      translate: -50% 0;
+      min-height: 44px;
+      padding: 0 8px 0 18px;
       display: flex;
       align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 999px;
+      background: rgba(18, 18, 20, .94);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      color: #f5f5f7;
+      box-shadow: 0 14px 42px rgba(29, 29, 31, .3), inset 0 1px 0 rgba(255, 255, 255, .1);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: box-shadow 300ms ease;
+      animation: island-materialize .9s var(--spring-smooth) .1s backwards;
+      will-change: transform;
+    }
+    .island.is-held { cursor: grabbing; box-shadow: 0 22px 60px rgba(29, 29, 31, .4), inset 0 1px 0 rgba(255, 255, 255, .12); }
+
+    @keyframes island-materialize {
+      from { opacity: 0; scale: .9; translate: -50% -12px; }
+    }
+
+    .island-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ecd3a2, #c9a35a);
+      box-shadow: 0 0 10px 2px rgba(211, 174, 107, .55);
+      flex: none;
+    }
+
+    .island-brand { font-size: .88rem; font-weight: 650; letter-spacing: .02em; white-space: nowrap; }
+
+    /* the island speaks: expands to announce the current section */
+    .island-label {
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #d8d8dc;
+      font-size: .76rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      transition: max-width 550ms var(--spring-bounce), opacity 320ms ease, padding 550ms var(--spring-bounce);
+    }
+    .island.is-peek .island-label { max-width: 170px; opacity: 1; padding-left: 4px; }
+
+    .island-chevron {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .1);
+      color: #f5f5f7;
+      cursor: pointer;
+      font-size: .85rem;
+      transition: transform 500ms var(--spring-bounce), background 200ms ease;
+    }
+    .island-chevron:hover { background: rgba(255, 255, 255, .18); }
+    .island-chevron:active { transform: scale(.9); transition: transform 70ms ease-out; }
+    body.sheet-open .island-chevron { transform: rotate(180deg); }
+
+    /* ---------- Control Center: a sheet of glass sliding over the page ---------- */
+    .sheet-backdrop {
+      position: fixed;
+      z-index: 94;
+      inset: 0;
+      background: rgba(29, 29, 31, .2);
+      backdrop-filter: blur(calc(var(--sheet-p) * 10px)) saturate(130%);
+      -webkit-backdrop-filter: blur(calc(var(--sheet-p) * 10px)) saturate(130%);
+      opacity: var(--sheet-p);
+      pointer-events: none;
+    }
+    body.sheet-open .sheet-backdrop { pointer-events: auto; }
+
+    .sheet {
+      position: fixed;
+      z-index: 95;
+      top: 72px;
+      left: 50%;
+      translate: -50% 0;
+      width: min(620px, calc(100% - 24px));
+      padding: 14px 20px 22px;
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-top-color: rgba(255, 255, 255, .95);
+      border-radius: 30px;
+      background: var(--glass-heavy);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      box-shadow: 0 40px 90px rgba(29, 29, 31, .28), inset 0 1px 0 rgba(255, 255, 255, .9);
+      transform: translate3d(0, var(--sheet-y, -120vh), 0);
+      will-change: transform;
+      touch-action: none;
+    }
+
+    .sheet-grabber {
+      width: 44px;
+      height: 5px;
+      margin: 0 auto 14px;
+      border-radius: 999px;
+      background: rgba(29, 29, 31, .22);
+      cursor: grab;
+    }
+    .sheet.is-held .sheet-grabber { cursor: grabbing; }
+
+    .sheet h2 { margin: 0 0 4px; font-size: 1.05rem; letter-spacing: -.015em; display: flex; justify-content: space-between; align-items: baseline; }
+    .sheet h2 small { color: var(--faint); font-size: .66rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
+
+    .sheet-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sheet-tile {
+      min-height: 84px;
+      padding: 13px 14px;
+      display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      border: 1px solid rgba(255, 255, 255, .75);
-      border-top-color: rgba(255, 255, 255, .95); /* bright top edge: light catching the glass */
-      border-radius: 18px;
-      background: var(--glass);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      box-shadow: 0 12px 40px rgba(29, 29, 31, .1);
-      animation: nav-materialize .9s var(--spring-smooth) .1s backwards;
-    }
-
-    @keyframes nav-materialize {
-      from { opacity: 0; scale: .94; translate: 0 -10px; }
-    }
-
-    .brand { font-size: .97rem; font-weight: 650; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: 8px; }
-    .brand small { color: var(--faint); font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-    .nav-actions { display: flex; align-items: center; gap: 8px; }
-    .nav-repo {
-      min-height: 38px;
-      padding: 0 16px;
-      display: inline-flex;
-      align-items: center;
       gap: 8px;
-      border: 1px solid var(--hairline);
-      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-radius: 18px;
       background: rgba(255, 255, 255, .5);
-      font-size: .78rem;
-      font-weight: 620;
-      transition: transform 420ms var(--spring-bounce), background 180ms ease;
+      box-shadow: 0 8px 22px rgba(29, 29, 31, .07), inset 0 1px 0 rgba(255, 255, 255, .8);
+      cursor: pointer;
+      text-align: left;
+      transition: transform 380ms var(--spring-bounce), background 180ms ease;
     }
-    .nav-repo:hover { background: rgba(255, 255, 255, .9); }
-    .nav-repo:active { transform: scale(.94); transition: transform 70ms ease-out, background 120ms ease; }
-    .nav-signal { display: grid; place-items: center; width: 34px; height: 34px; color: var(--gold); font-size: .75rem; }
+    .sheet-tile:hover { background: rgba(255, 255, 255, .85); }
+    .sheet-tile:active { transform: scale(.95); transition: transform 70ms ease-out, background 120ms ease; }
+    .sheet-tile i { color: var(--gold); font-size: 1.25rem; }
+    .sheet-tile span { font-size: .8rem; font-weight: 650; letter-spacing: -.01em; }
+
+    .sheet-hint { margin: 16px 0 0; color: var(--faint); font-size: .72rem; text-align: center; }
+    .sheet-hint i { color: var(--gold); }
 
     main { position: relative; background: var(--bg); }
 
-    /* ---------- hero ---------- */
+    /* ---------- hero: five parallax layers deep ---------- */
     .hero-scroll { position: relative; height: 185svh; }
 
     .hero {
@@ -112,10 +215,9 @@
       isolation: isolate;
     }
 
-    /* soft metallic aurora instead of a photo: silver, champagne, sky */
     .hero-aurora {
       position: absolute;
-      z-index: -2;
+      z-index: -3;
       inset: -12%;
       background:
         radial-gradient(42% 46% at 22% 26%, rgba(233, 214, 173, .8), transparent 68%),
@@ -125,6 +227,35 @@
       filter: blur(6px);
       transform: translate3d(0, calc(var(--hero-progress) * 70px), 0) scale(calc(1 + var(--hero-progress) * .08));
       will-change: transform;
+    }
+
+    /* drifting glass chips: each at its own parallax rate = depth */
+    .chip {
+      position: absolute;
+      z-index: -1;
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-top-color: rgba(255, 255, 255, .95);
+      background: rgba(255, 255, 255, .32);
+      backdrop-filter: blur(10px) saturate(160%);
+      -webkit-backdrop-filter: blur(10px) saturate(160%);
+      box-shadow: 0 16px 40px rgba(29, 29, 31, .08), inset 0 1px 0 rgba(255, 255, 255, .7);
+      pointer-events: none;
+      will-change: transform;
+    }
+    .chip-a {
+      top: 16%; left: 46%;
+      width: 74px; height: 74px; border-radius: 22px;
+      transform: translate3d(0, calc(var(--hero-progress) * -160px), 0) rotate(calc(14deg + var(--hero-progress) * 18deg));
+    }
+    .chip-b {
+      top: 64%; left: 38%;
+      width: 46px; height: 46px; border-radius: 999px;
+      transform: translate3d(0, calc(var(--hero-progress) * -270px), 0);
+    }
+    .chip-c {
+      top: 30%; right: 4%;
+      width: 58px; height: 58px; border-radius: 18px;
+      transform: translate3d(0, calc(var(--hero-progress) * -90px), 0) rotate(calc(-10deg - var(--hero-progress) * 14deg));
     }
 
     .hero-layout {
@@ -169,10 +300,9 @@
       margin: 0;
       font-size: clamp(3.3rem, 5.4vw, 4.9rem);
       line-height: 1.08;
-      letter-spacing: -.035em;   /* large display: negative tracking */
+      letter-spacing: -.035em;
       font-weight: 700;
       text-wrap: balance;
-      /* engraved-silver headline */
       background: linear-gradient(165deg, #3c3c3e 0%, #1d1d1f 42%, #55555a 78%, #1d1d1f 100%);
       -webkit-background-clip: text;
       background-clip: text;
@@ -193,7 +323,7 @@
       color: var(--muted);
       font-size: clamp(1rem, 1.3vw, 1.12rem);
       line-height: 1.75;
-      letter-spacing: 0;         /* body copy: tracking stays at zero */
+      letter-spacing: 0;
     }
 
     .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
@@ -207,6 +337,7 @@
       border-radius: 14px;
       font-size: .88rem;
       font-weight: 700;
+      cursor: pointer;
       transition: transform 420ms var(--spring-bounce), background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
     .button.primary {
@@ -227,7 +358,7 @@
     .button.secondary:hover { background: rgba(255, 255, 255, .85); }
     .button:active { transform: scale(.955); transition: transform 70ms ease-out, background 120ms ease, border-color 120ms ease; }
 
-    /* ---------- draggable glass card: the physics bench ---------- */
+    /* ---------- the physics bench: liquid glass that chases light ---------- */
     .snapshot {
       position: relative;
       min-height: 410px;
@@ -238,10 +369,21 @@
       background: var(--glass-heavy);
       backdrop-filter: blur(26px) saturate(170%);
       -webkit-backdrop-filter: blur(26px) saturate(170%);
-      box-shadow: 0 30px 70px rgba(29, 29, 31, .14), inset 0 1px 0 rgba(255, 255, 255, .9);
+      box-shadow:
+        0 30px 70px rgba(29, 29, 31, .14),
+        inset 0 1px 0 rgba(255, 255, 255, .9),
+        inset 0 -18px 34px -24px rgba(29, 29, 31, .28);
       --drag-x: 0px;
       --drag-y: 0px;
-      transform: translate3d(var(--drag-x), var(--drag-y), 0) translate3d(calc(var(--hero-progress) * 90px), calc(42px + var(--hero-progress) * -58px), 0) rotate(calc(2.2deg + var(--hero-progress) * 2deg)) scale(calc(1 - var(--hero-progress) * .08));
+      --drag-rot: 0;
+      --sheen-x: 72%;
+      --sheen-y: 14%;
+      transform:
+        translate3d(var(--drag-x), var(--drag-y), 0)
+        rotate(calc(var(--drag-rot) * 1deg))
+        translate3d(calc(var(--hero-progress) * 90px), calc(42px + var(--hero-progress) * -58px), 0)
+        rotate(calc(2.2deg + var(--hero-progress) * 2deg))
+        scale(calc(1 - var(--hero-progress) * .08));
       opacity: calc(1 - var(--hero-progress) * 1.15);
       transform-origin: 50% 72%;
       will-change: transform, opacity;
@@ -251,14 +393,17 @@
       overflow: hidden;
     }
 
-    /* liquid-glass specular sheen sweeping the top edge */
+    /* specular highlight follows the pointer — the "liquid" in liquid glass */
     .snapshot::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: -1px;
       pointer-events: none;
-      background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 44%, rgba(255, 255, 255, 0) 56%);
-      opacity: .8;
+      background:
+        radial-gradient(260px circle at var(--sheen-x) var(--sheen-y), rgba(255, 255, 255, .65), transparent 62%),
+        linear-gradient(180deg, rgba(255, 255, 255, .35), transparent 32%);
+      opacity: .9;
+      transition: opacity 300ms ease;
     }
 
     @keyframes card-materialize {
@@ -269,7 +414,10 @@
       cursor: grabbing;
       user-select: none;
       -webkit-user-select: none;
-      box-shadow: 0 46px 95px rgba(29, 29, 31, .2), inset 0 1px 0 rgba(255, 255, 255, .9);
+      box-shadow:
+        0 46px 95px rgba(29, 29, 31, .2),
+        inset 0 1px 0 rgba(255, 255, 255, .9),
+        inset 0 -18px 34px -24px rgba(29, 29, 31, .3);
     }
 
     .snapshot::after {
@@ -287,6 +435,7 @@
     .snapshot h2 { position: relative; margin: 0; font-size: 1.35rem; letter-spacing: -.02em; }
     .snapshot h2 small { margin-left: 8px; color: var(--faint); font-size: .68rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
     .snapshot > p { position: relative; margin: 14px 0 24px; color: var(--muted); font-size: .93rem; line-height: 1.7; }
+    .snapshot > p code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .82rem; color: var(--gold); }
     .stat-grid { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--hairline); border-radius: 15px; overflow: hidden; background: rgba(255, 255, 255, .45); }
     .stat { min-height: 95px; padding: 17px 18px; display: flex; flex-direction: column; justify-content: center; }
     .stat:nth-child(odd) { border-right: 1px solid var(--hairline); }
@@ -312,7 +461,7 @@
 
     .hero-cue i { color: var(--gold); font-size: 1rem; }
 
-    /* ---------- scroll story: five principles ---------- */
+    /* ---------- scroll story ---------- */
     .story { position: relative; height: 500svh; background: var(--bg); }
 
     .story-stage {
@@ -328,7 +477,7 @@
 
     .story-veil {
       position: absolute;
-      z-index: -2;
+      z-index: -3;
       inset: -10%;
       background:
         radial-gradient(50% 55% at 78% 20%, rgba(233, 214, 173, .55), transparent 70%),
@@ -336,6 +485,28 @@
       filter: blur(8px);
       transform: translate3d(0, calc(var(--story-progress) * -45px), 0) scale(calc(1.04 + var(--story-progress) * .1));
       will-change: transform;
+    }
+
+    /* ghost numeral: a deeper layer sliding at its own speed */
+    .story-ghost {
+      --ghost-y: 0;
+      position: absolute;
+      z-index: -2;
+      right: 2%;
+      top: 50%;
+      font-size: clamp(13rem, 26vw, 24rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.06em;
+      font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, rgba(29, 29, 31, .08), rgba(29, 29, 31, .015));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      transform: translate3d(0, calc(-50% + var(--ghost-y) * 1px), 0);
+      will-change: transform;
+      user-select: none;
+      pointer-events: none;
     }
 
     .story-shell {
@@ -390,7 +561,7 @@
       max-width: 830px;
       font-size: clamp(2.9rem, 6.4vw, 5.6rem);
       line-height: 1.06;
-      letter-spacing: -.04em;   /* heading: tight tracking, tight leading */
+      letter-spacing: -.04em;
       font-weight: 720;
       background: linear-gradient(160deg, #333336, #1d1d1f 50%, #4c4c50);
       -webkit-background-clip: text;
@@ -453,6 +624,218 @@
       transform-origin: left;
     }
 
+    /* ---------- materials gallery: thickness = hierarchy ---------- */
+    .materials {
+      position: relative;
+      padding: 130px max(7vw, 48px) 120px;
+      overflow: hidden;
+    }
+
+    .materials-band {
+      position: absolute;
+      z-index: 0;
+      left: 50%;
+      top: 52%;
+      width: min(1400px, 120%);
+      height: 340px;
+      translate: -50% -50%;
+      border-radius: 999px;
+      background:
+        radial-gradient(60% 120% at 18% 40%, #e8c98b, transparent 70%),
+        radial-gradient(55% 130% at 52% 60%, #a8c4e6, transparent 72%),
+        radial-gradient(60% 120% at 84% 42%, #e2b6a0, transparent 70%),
+        linear-gradient(90deg, #dfe6f0, #f0e6d2);
+      filter: blur(2px);
+      transform: translate3d(0, calc((var(--mat-progress) - .5) * 60px), 0);
+      will-change: transform;
+    }
+
+    .materials-head { position: relative; z-index: 2; width: min(1200px, 100%); margin: 0 auto 64px; }
+    .materials-head .eyebrow { margin-bottom: 14px; }
+    .materials-head h2 { margin: 0; font-size: clamp(2rem, 3.6vw, 3rem); letter-spacing: -.03em; font-weight: 720; }
+    .materials-head p { max-width: 560px; margin: 16px 0 0; color: var(--muted); font-size: 1rem; line-height: 1.75; }
+
+    .material-tiles {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .tile {
+      position: relative;
+      padding: 26px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-top-color: rgba(255, 255, 255, .95);
+      overflow: hidden;
+      will-change: transform;
+    }
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .4), transparent 34%);
+    }
+    /* each tile rides at its own parallax rate — the stack breathes */
+    .tile-thin {
+      background: rgba(255, 255, 255, .3);
+      backdrop-filter: blur(6px) saturate(150%);
+      -webkit-backdrop-filter: blur(6px) saturate(150%);
+      box-shadow: 0 10px 26px rgba(29, 29, 31, .08);
+      transform: translate3d(0, calc((var(--mat-progress) - .5) * -34px), 0);
+    }
+    .tile-regular {
+      background: rgba(255, 255, 255, .52);
+      backdrop-filter: blur(18px) saturate(170%);
+      -webkit-backdrop-filter: blur(18px) saturate(170%);
+      box-shadow: 0 20px 44px rgba(29, 29, 31, .12), inset 0 1px 0 rgba(255, 255, 255, .8);
+      transform: translate3d(0, calc((var(--mat-progress) - .5) * -76px), 0);
+    }
+    .tile-thick {
+      background: rgba(255, 255, 255, .72);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      box-shadow: 0 32px 68px rgba(29, 29, 31, .17), inset 0 1px 0 rgba(255, 255, 255, .95);
+      transform: translate3d(0, calc((var(--mat-progress) - .5) * -120px), 0);
+    }
+
+    .tile h3 { position: relative; margin: 0; font-size: 1.02rem; letter-spacing: -.015em; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .tile h3 code { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--gold); font-size: .72rem; font-weight: 650; }
+    .tile p { position: relative; margin: 10px 0 0; color: var(--muted); font-size: .86rem; line-height: 1.7; }
+
+    .materials-note {
+      position: relative;
+      z-index: 2;
+      width: min(1200px, 100%);
+      margin: 48px auto 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.7;
+    }
+    .materials-note i { color: var(--gold); font-size: 1.1rem; translate: 0 2px; }
+    .materials-note strong { color: var(--ink); }
+
+    /* ---------- spring lab: hands-on tuning ---------- */
+    .lab {
+      position: relative;
+      padding: 120px max(7vw, 48px) 130px;
+      background:
+        radial-gradient(46% 60% at 84% 12%, rgba(233, 214, 173, .4), transparent 70%),
+        radial-gradient(40% 55% at 10% 90%, rgba(214, 224, 236, .5), transparent 70%);
+    }
+
+    .lab-shell {
+      width: min(1000px, 100%);
+      margin: 0 auto;
+      padding: clamp(28px, 4vw, 44px);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-top-color: rgba(255, 255, 255, 1);
+      background: var(--glass-heavy);
+      backdrop-filter: blur(28px) saturate(170%);
+      -webkit-backdrop-filter: blur(28px) saturate(170%);
+      box-shadow: 0 34px 80px rgba(29, 29, 31, .13), inset 0 1px 0 rgba(255, 255, 255, .9);
+    }
+
+    .lab-shell .eyebrow { margin-bottom: 12px; }
+    .lab-shell h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.4rem); letter-spacing: -.03em; font-weight: 720; }
+    .lab-shell > p { max-width: 660px; margin: 14px 0 30px; color: var(--muted); font-size: .96rem; line-height: 1.75; }
+    .lab-shell > p code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .84rem; color: var(--gold); }
+
+    .lab-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .lab-field label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: .8rem; font-weight: 650; color: var(--ink); }
+    .lab-field label output { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--gold); font-size: .78rem; font-variant-numeric: tabular-nums; }
+    .lab-field small { display: block; margin-top: 8px; color: var(--faint); font-size: .72rem; }
+
+    input[type="range"] {
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #c9a35a, #e7cd9a);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      margin-top: -9.5px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .95);
+      background: rgba(255, 255, 255, .85);
+      box-shadow: 0 6px 16px rgba(29, 29, 31, .22), inset 0 1px 0 #fff;
+      transition: transform 300ms var(--spring-bounce);
+    }
+    input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
+    input[type="range"]::-moz-range-track { height: 5px; border-radius: 999px; background: linear-gradient(90deg, #c9a35a, #e7cd9a); }
+    input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.95); background: rgba(255,255,255,.85); box-shadow: 0 6px 16px rgba(29,29,31,.22); }
+
+    .lab-runway {
+      position: relative;
+      height: 96px;
+      border-radius: 18px;
+      border: 1px solid var(--hairline);
+      background:
+        linear-gradient(90deg, rgba(201, 163, 90, .12) 0 2px, transparent 2px) 0 0 / 25% 100%,
+        rgba(255, 255, 255, .4);
+      overflow: hidden;
+    }
+
+    .lab-puck {
+      position: absolute;
+      top: 50%;
+      left: 18px;
+      width: 52px;
+      height: 52px;
+      margin-top: -26px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, .95);
+      background: rgba(255, 255, 255, .6);
+      backdrop-filter: blur(10px) saturate(170%);
+      -webkit-backdrop-filter: blur(10px) saturate(170%);
+      box-shadow: 0 14px 30px rgba(29, 29, 31, .18), inset 0 1px 0 #fff;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-size: 1.2rem;
+      will-change: transform;
+    }
+
+    .lab-readout {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      color: var(--muted);
+      font-size: .82rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .lab-readout strong { color: var(--ink); font-weight: 680; }
+    .lab-readout em { font-style: normal; color: var(--gold); }
+
     /* ---------- helper cards ---------- */
     .features {
       position: relative;
@@ -480,64 +863,6 @@
 
     footer { padding: 22px max(7vw, 48px) 36px; display: flex; justify-content: space-between; gap: 18px; color: var(--faint); background: var(--bg); font-size: .74rem; }
 
-    /* ---------- liquid lens gallery ---------- */
-    .snapshot { min-height: 470px; padding: 24px; overflow: hidden; }
-    .lens-visual { position: relative; height: 292px; margin: 18px 0 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.82); border-radius: 20px; background: rgba(255,255,255,.22); box-shadow: inset 0 1px 0 white, 0 18px 50px rgba(84,70,48,.09); }
-    .lens-visual img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.03); transition: transform .7s var(--spring-smooth), filter .45s ease; }
-    .snapshot:hover .lens-visual img { transform: scale(1.08) rotate(-1deg); }
-    .lens-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: .78rem; }
-    .lens-caption span:first-child { display: inline-flex; align-items: center; gap: 8px; color: var(--gold); font-weight: 750; }
-    .hero-material-dock { position: absolute; z-index: 4; left: 50%; bottom: 28px; width: min(1200px,calc(100% - 84px)); padding: 10px; display: grid; grid-template-columns: 1.4fr repeat(6,1fr); gap: 8px; border: 1px solid rgba(255,255,255,.9); border-radius: 22px; background: rgba(255,255,255,.36); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); box-shadow: inset 0 1px 0 white, 0 22px 60px rgba(84,68,43,.1); transform: translateX(-50%) translateY(calc(var(--hero-progress) * 60px)); opacity: calc(1 - var(--hero-progress) * 1.6); }
-    .hero-dock-intro { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
-    .hero-dock-intro strong { font-size: .92rem; }
-    .hero-dock-intro span { margin-top: 5px; color: var(--muted); font-size: .72rem; }
-    .hero-material { min-height: 82px; padding: 8px; display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.66); border-radius: 14px; background: rgba(255,255,255,.28); font-size: .7rem; font-weight: 700; transition: transform .16s var(--spring-bounce), background .2s ease; }
-    .hero-material:hover { transform: translateY(-3px); background: rgba(255,255,255,.72); }
-    .hero-material img { width: 38px; height: 38px; object-fit: cover; border-radius: 50%; }
-    .hero-cue { display: none; }
-    .materials { position: relative; z-index: 4; padding: 110px max(6vw,42px) 130px; background: rgba(248,247,244,.82); }
-    .section-head { width: min(1200px,100%); margin: 0 auto 46px; display: flex; align-items: end; justify-content: space-between; gap: 42px; }
-    .section-head .eyebrow { margin-bottom: 14px; }
-    .section-head h2 { max-width: 760px; margin: 0; font-size: clamp(2.8rem,5.4vw,5.7rem); line-height: .98; letter-spacing: -.055em; }
-    .section-head > p { max-width: 390px; margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.75; }
-    .material-stage { --material-blur: 8px; --material-sat: 1.18; --material-opacity: .92; width: min(1200px,100%); min-height: 620px; margin: 0 auto; padding: 26px; border: 1px solid rgba(255,255,255,.9); border-radius: 34px; background: rgba(255,255,255,.34); backdrop-filter: blur(34px) saturate(185%); -webkit-backdrop-filter: blur(34px) saturate(185%); box-shadow: inset 0 1px 0 white, 0 34px 90px rgba(81,66,41,.12); }
-    .material-preview { position: relative; min-height: 430px; overflow: hidden; border: 1px solid rgba(255,255,255,.84); border-radius: 26px; background: rgba(255,255,255,.25); }
-    .material-preview img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; opacity: var(--material-opacity); filter: blur(var(--material-blur)) saturate(var(--material-sat)); transform: scale(1.04); transition: filter .5s var(--spring-smooth), opacity .4s ease, transform .8s var(--spring-smooth); }
-    .material-stage.is-changing .material-preview img { transform: scale(1.1) rotate(.7deg); }
-    .material-copy { position: absolute; z-index: 2; left: 34px; right: 34px; bottom: 30px; display: flex; align-items: end; justify-content: space-between; gap: 24px; }
-    .material-copy h3 { margin: 0; font-size: clamp(2rem,4vw,4rem); letter-spacing: -.05em; }
-    .material-copy p { max-width: 410px; margin: 0; color: #625b51; line-height: 1.65; }
-    .material-dock { margin-top: 18px; padding: 12px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 10px; border: 1px solid rgba(255,255,255,.86); border-radius: 22px; background: rgba(255,255,255,.36); backdrop-filter: blur(24px) saturate(175%); -webkit-backdrop-filter: blur(24px) saturate(175%); }
-    .material-button { min-height: 88px; padding: 14px 10px; border: 1px solid transparent; border-radius: 16px; background: rgba(255,255,255,.26); color: var(--muted); cursor: pointer; font: inherit; transition: transform 140ms var(--spring-bounce), border-color .2s ease, background .2s ease, color .2s ease; }
-    .material-button i { display: block; margin-bottom: 9px; font-size: 1.45rem; }
-    .material-button span { font-size: .78rem; font-weight: 700; }
-    .material-button:hover { transform: translateY(-3px); background: rgba(255,255,255,.62); }
-    .material-button.is-active { border-color: rgba(180,135,55,.62); background: rgba(255,255,255,.76); color: var(--gold); box-shadow: 0 8px 25px rgba(120,86,26,.1); }
-    .labs { padding: 130px max(6vw,42px); background: #f1f2f5; }
-    .lab-shell { width: min(1200px,100%); margin: 0 auto; }
-    .lab-grid { display: grid; grid-template-columns: minmax(280px,.78fr) minmax(440px,1.35fr); gap: 22px; }
-    .lab-panel { padding: 30px; border: 1px solid rgba(255,255,255,.92); border-radius: 28px; background: rgba(255,255,255,.4); backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); box-shadow: inset 0 1px 0 white, 0 28px 80px rgba(55,66,80,.12); }
-    .lab-panel h3 { margin: 0 0 10px; font-size: 1.45rem; letter-spacing: -.035em; }
-    .lab-panel > p { margin: 0 0 28px; color: var(--muted); line-height: 1.65; }
-    .control { margin: 0 0 24px; }
-    .control label { margin-bottom: 10px; display: flex; justify-content: space-between; gap: 18px; font-size: .8rem; font-weight: 700; }
-    .control output { color: var(--gold); font-variant-numeric: tabular-nums; }
-    input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
-    .glass-bench { min-height: 540px; display: grid; place-items: center; overflow: hidden; }
-    .bench-card { width: min(430px,76%); aspect-ratio: 1.14; overflow: hidden; border: 1px solid rgba(255,255,255,.9); border-radius: 30px; background: rgba(255,255,255,var(--bench-opacity,.48)); backdrop-filter: blur(var(--bench-blur,24px)) saturate(var(--bench-sat,170%)); -webkit-backdrop-filter: blur(var(--bench-blur,24px)) saturate(var(--bench-sat,170%)); box-shadow: inset 0 1px 0 white, 0 38px 80px rgba(52,68,88,.16); transform: translateX(var(--spring-x,0px)) scale(var(--bench-scale,1)); will-change: transform; }
-    .bench-card img { width: 100%; height: 100%; object-fit: cover; opacity: .72; mix-blend-mode: multiply; }
-    .lab-action { width: 100%; min-height: 52px; border: 0; border-radius: 15px; background: var(--gold); color: white; font: inherit; font-weight: 760; cursor: pointer; transition: transform 100ms ease, box-shadow .25s ease; box-shadow: 0 14px 34px rgba(162,120,44,.2); }
-    .lab-action:active { transform: scale(.97); }
-    .type-lab { padding: 150px max(6vw,42px); background: #fbfaf8; }
-    .type-shell { width: min(1200px,100%); margin: 0 auto; display: grid; grid-template-columns: 1.45fr .55fr; gap: 26px; }
-    .type-stage { min-height: 640px; padding: clamp(34px,6vw,78px); display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,.92); border-radius: 34px; background: rgba(255,255,255,.42); backdrop-filter: blur(34px) saturate(170%); -webkit-backdrop-filter: blur(34px) saturate(170%); box-shadow: inset 0 1px 0 white, 0 32px 90px rgba(90,72,48,.1); }
-    .type-sample { margin: 0; font-size: clamp(4rem,9vw,9rem); line-height: .9; letter-spacing: var(--type-track,-.05em); font-weight: var(--type-weight,700); }
-    .type-meta { color: var(--muted); line-height: 1.7; }
-    .finale { min-height: 86svh; padding: 140px 24px; display: grid; place-items: center; text-align: center; background: #edf1f7; }
-    .finale-inner { width: min(900px,100%); padding: 70px 32px; border: 1px solid rgba(255,255,255,.96); border-radius: 40px; background: rgba(255,255,255,.38); backdrop-filter: blur(40px) saturate(185%); -webkit-backdrop-filter: blur(40px) saturate(185%); box-shadow: inset 0 1px 0 white, 0 34px 100px rgba(67,83,107,.13); }
-    .finale h2 { margin: 0; font-size: clamp(3rem,7vw,7rem); line-height: .98; letter-spacing: -.06em; }
-    .finale p { max-width: 620px; margin: 26px auto 0; color: var(--muted); font-size: 1.05rem; line-height: 1.8; }
-
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
     ::selection { background: rgba(211, 174, 107, .35); }
 
@@ -546,47 +871,42 @@
       .hero { padding-top: 150px; padding-bottom: 80px; }
       .hero-layout { grid-template-columns: 1fr; gap: 56px; }
       .hero-copy { max-width: 760px; }
-      .snapshot { width: min(560px, 100%); justify-self: end; transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(1deg); }
+      .snapshot { width: min(560px, 100%); justify-self: end; transform: translate3d(var(--drag-x), var(--drag-y), 0) rotate(calc(var(--drag-rot) * 1deg)) rotate(1deg); }
+      .chip-a { left: auto; right: 10%; }
+      .chip-b { display: none; }
       .story-shell { width: min(820px, calc(100% - 56px)); }
       .story-card { width: calc(100% - 72px); }
-      .section-head { align-items: start; flex-direction: column; }
-      .lab-grid, .type-shell { grid-template-columns: 1fr; }
-      .material-dock { grid-template-columns: repeat(3,1fr); }
-      .hero-material-dock { grid-template-columns: repeat(3,1fr); }
-      .hero-dock-intro { display: none; }
+      .story-ghost { right: -4%; }
+      .material-tiles { grid-template-columns: 1fr; gap: 18px; }
+      .tile-thin, .tile-regular, .tile-thick { transform: none; }
+      .materials-band { height: 100%; top: 50%; }
+      .lab-controls { grid-template-columns: 1fr; gap: 18px; }
     }
 
     @media (max-width: 720px) {
-      .nav-wrap { top: 12px; width: calc(100% - 20px); }
-      .nav-shell { min-height: 52px; padding-left: 15px; }
-      .nav-repo { padding: 0 12px; }
-      .brand small { display: none; }
+      .island { top: 10px; min-height: 42px; padding-left: 14px; }
+      .island-brand { font-size: .82rem; }
+      .sheet { top: 62px; }
+      .sheet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; min-height: auto; padding: 130px 22px 72px; }
       .hero-layout { gap: 48px; }
       h1 { font-size: clamp(2.5rem, 12vw, 3.9rem); line-height: 1.08; }
       .lede { font-size: .98rem; }
       .snapshot { min-height: auto; padding: 25px; border-radius: 22px; }
-      .hero-cue { display: none; }
-      .hero-material-dock { display: none; }
+      .hero-cue, .chip { display: none; }
       .story { height: 440svh; }
       .story-stage { min-height: 560px; }
       .story-shell { width: calc(100% - 44px); height: 78svh; min-height: 560px; }
       .story-card { width: calc(100% - 34px); }
       .story-card h2 { font-size: clamp(2.3rem, 10.5vw, 3.6rem); }
       .story-card p { margin-top: 22px; font-size: .98rem; }
+      .story-ghost { font-size: clamp(10rem, 42vw, 14rem); right: -8%; }
       .story-nav { right: -12px; }
       .story-kicker { max-width: calc(100% - 54px); }
       .story-counter { top: 34px; right: 4px; }
-      .materials, .labs, .type-lab { padding: 88px 22px; }
-      .material-stage { padding: 12px; border-radius: 24px; }
-      .material-preview { min-height: 520px; border-radius: 20px; }
-      .material-copy { left: 22px; right: 22px; bottom: 22px; align-items: start; flex-direction: column; }
-      .material-dock { grid-template-columns: repeat(2,1fr); }
-      .lab-panel { padding: 22px; border-radius: 22px; }
-      .glass-bench { min-height: 420px; }
-      .type-stage { min-height: 520px; }
-      .type-sample { font-size: clamp(3.5rem,20vw,6.3rem); }
+      .materials { padding: 90px 22px; }
+      .lab { padding: 80px 22px 100px; }
       .feature-grid { grid-template-columns: 1fr; }
       .features { padding: 44px 22px 54px; }
       .feature, .feature + .feature { padding: 28px 0; border-left: 0; border-top: 1px solid var(--hairline); }
@@ -597,149 +917,147 @@
     /* ---------- inclusive modes ---------- */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      .nav-shell, .hero-copy > *, .snapshot { animation: none !important; scale: none !important; translate: none !important; }
+      .island { animation: none !important; scale: none !important; cursor: default; touch-action: auto; }
+      .hero-copy > *, .snapshot { animation: none !important; scale: none !important; translate: none !important; }
       .snapshot { cursor: default; touch-action: auto; }
-      .button, .nav-repo, .story-dot::before { transition-duration: 1ms !important; }
+      .button, .story-dot::before, .island-label, .island-chevron, .sheet-tile, input[type="range"]::-webkit-slider-thumb { transition-duration: 1ms !important; }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; }
-      .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil, .material-preview img, .bench-card { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
+      .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil, .chip, .story-ghost, .materials-band, .tile-thin, .tile-regular, .tile-thick { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
+      .chip { display: none; }
       .story { height: auto; }
       .story-stage { position: relative; height: auto; padding: 120px 0; }
       .story-shell { height: auto; }
       .story-card { position: relative; top: auto; width: 100%; margin: 0 0 96px; opacity: 1 !important; transform: none !important; filter: none !important; }
       .story-card:last-of-type { margin-bottom: 0; }
-      .story-nav, .story-progress, .story-counter { display: none; }
+      .story-nav, .story-progress, .story-counter, .story-ghost { display: none; }
     }
 
     @media (prefers-reduced-transparency: reduce) {
-      .nav-shell, .snapshot, .features, .button.secondary, .story-fact, .material-stage, .material-dock, .lab-panel, .type-stage, .finale-inner { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
+      .island { background: #131316; }
+      .sheet, .snapshot, .features, .button.secondary, .story-fact, .tile, .lab-shell, .lab-puck, .chip, .sheet-tile { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
+      .sheet-backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
     }
 
     @media (prefers-contrast: more) {
-      .nav-shell, .snapshot, .story-fact { border: 2px solid var(--ink); }
-      .lede, .snapshot > p, .feature p, .story-card p { color: #3a3a3c; }
+      .sheet, .snapshot, .story-fact, .tile, .lab-shell, .sheet-tile { border: 2px solid var(--ink); }
+      .lede, .snapshot > p, .feature p, .story-card p, .tile p, .lab-shell > p { color: #3a3a3c; }
       h1, .story-card h2 { background: none; color: var(--ink); }
+      .story-ghost { display: none; }
     }
   </style>
 </head>
 <body>
   <div class="scroll-progress" aria-hidden="true"></div>
 
-  <div class="nav-wrap">
-    <nav class="nav-shell" aria-label="主导航">
-      <a class="brand" href="#top">玻璃与弹簧 <small>Glass · Springs</small></a>
-      <div class="nav-actions">
-        <a class="nav-repo" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">
-          查看源码 <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
-        </a>
-        <span class="nav-signal" aria-label="站点在线"><i class="ph ph-circle" aria-hidden="true"></i></span>
-      </div>
-    </nav>
+  <!-- Dynamic Island -->
+  <div class="island" id="island" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="打开控制中心">
+    <span class="island-dot" aria-hidden="true"></span>
+    <span class="island-brand">格物志</span>
+    <span class="island-label" id="island-label" aria-hidden="true"></span>
+    <button class="island-chevron" id="island-chevron" type="button" aria-label="展开或收起控制中心" tabindex="-1">
+      <i class="ph ph-caret-down" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Control Center: glass sliding over the page -->
+  <div class="sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-label="控制中心" aria-hidden="true">
+    <div class="sheet-grabber" id="sheet-grabber" aria-hidden="true"></div>
+    <h2>控制中心 <small>Control Center</small></h2>
+    <div class="sheet-grid">
+      <button class="sheet-tile" type="button" data-goto="#top"><i class="ph ph-house" aria-hidden="true"></i><span>回到顶部</span></button>
+      <button class="sheet-tile" type="button" data-goto="#principles"><i class="ph ph-compass" aria-hidden="true"></i><span>知识地图</span></button>
+      <button class="sheet-tile" type="button" data-goto="#materials"><i class="ph ph-stack" aria-hidden="true"></i><span>材质图鉴</span></button>
+      <button class="sheet-tile" type="button" data-goto="#lab"><i class="ph ph-flask" aria-hidden="true"></i><span>调参台</span></button>
+      <button class="sheet-tile" type="button" data-goto="#reference"><i class="ph ph-notebook" aria-hidden="true"></i><span>正在做</span></button>
+      <a class="sheet-tile" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer"><i class="ph ph-github-logo" aria-hidden="true"></i><span>查看源码</span></a>
+    </div>
+    <p class="sheet-hint"><i class="ph ph-hand-swipe-up" aria-hidden="true"></i> 往上甩即可收起——松手时的速度方向决定去留</p>
   </div>
 
   <main id="top">
     <section class="hero-scroll" aria-label="介绍">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-aurora" aria-hidden="true"></div>
+        <div class="chip chip-a" aria-hidden="true"></div>
+        <div class="chip chip-b" aria-hidden="true"></div>
+        <div class="chip chip-c" aria-hidden="true"></div>
         <div class="hero-layout">
           <div class="hero-copy">
-            <p class="eyebrow">一份可以上手玩的交互科普</p>
-            <h1 id="hero-title">轻盈如光，<br>流动如水，<br><em>触手可及。</em></h1>
-            <p class="lede">界面的"手感"从哪里来？这个页面拆解苹果设计语言里的五个核心原则——从按下的第一帧，到弹簧的物理，再到液态玻璃的层级。往下滚动阅读，或者先抓起右边那张卡片甩一甩。</p>
+            <p class="eyebrow">格物志 · 一个材料系学生的知识地图</p>
+            <h1 id="hero-title">从原子到文字，<br>把世界<br><em>看清楚一点。</em></h1>
+            <p class="lede">我在读材料科学，业余写代码、啃物理、翻《野草》。这里存放我正在学的东西——晶格与裂纹、方程与算法、网络与诗——装在一层液态玻璃里。往下滚动开始逛，或者下拉顶上那颗灵动岛看目录。</p>
             <div class="actions">
-              <a class="button primary" href="#principles">开始阅读 <i class="ph ph-arrow-down" aria-hidden="true"></i></a>
-              <a class="button secondary" href="https://github.com/blynhilder/blynhilder.github.io" target="_blank" rel="noopener noreferrer">查看源码</a>
+              <a class="button primary" href="#principles">进入知识地图 <i class="ph ph-arrow-down" aria-hidden="true"></i></a>
+              <button class="button secondary" type="button" id="hero-open-sheet">下拉控制中心</button>
             </div>
           </div>
 
           <aside class="snapshot" aria-labelledby="snapshot-title">
-            <h2 id="snapshot-title">可拖动玻璃样本 <small>Liquid Lens</small></h2>
-            <div class="lens-visual"><img src="assets/liquid-lens-hero.webp" alt="透明到磨砂的液态玻璃光学样本"></div>
-            <div class="lens-caption"><span><i class="ph ph-hand-grabbing" aria-hidden="true"></i>抓起并甩动</span><span>观察折射与高光</span></div>
+            <h2 id="snapshot-title">手感实验台 <small>Physics Bench</small></h2>
+            <p>这张玻璃卡片连着两根真正的弹簧，抓起、甩出、半路截住，速度从不跳变。它的积分器是半隐式欧拉——和 LAMMPS 里跑分子动力学的 <code>velocity Verlet</code> 是同一家族的算法。界面动画与晶格振动，算的是同一类方程。</p>
+            <div class="stat-grid">
+              <div class="stat"><span>阻尼比 Damping</span><strong>0.78</strong></div>
+              <div class="stat"><span>响应 Response</span><strong>0.45s</strong></div>
+              <div class="stat"><span>自由区 Free zone</span><strong>90px</strong></div>
+              <div class="stat"><span>积分器 Integrator</span><strong>Euler</strong></div>
+            </div>
           </aside>
-        </div>
-        <div class="hero-material-dock" aria-label="玻璃材质快捷入口">
-          <div class="hero-dock-intro"><strong>探索材料</strong><span>选择一种光学性格</span></div>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>超白玻璃</span></a>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>磨砂玻璃</span></a>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>水波纹</span></a>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>夹丝玻璃</span></a>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>茶色玻璃</span></a>
-          <a class="hero-material" href="#materials"><img src="assets/liquid-lens-hero.webp" alt=""><span>彩釉玻璃</span></a>
         </div>
         <div class="hero-cue" aria-hidden="true"><i class="ph ph-mouse-scroll"></i><span>向下滚动</span></div>
       </section>
     </section>
 
-    <section class="materials" id="materials" aria-labelledby="materials-title">
-      <div class="section-head">
-        <div><p class="eyebrow">Material Gallery · 材质画廊</p><h2 id="materials-title">透明不是一个数值，<br>而是一整套光学语言。</h2></div>
-        <p>选择一种材质，观察模糊、饱和度与透光率如何共同改变层级。每个样本都使用同一张真实光学素材，只改变界面参数。</p>
-      </div>
-      <div class="material-stage" data-material-stage>
-        <div class="material-preview">
-          <img src="assets/liquid-lens-hero.webp" alt="当前玻璃材质预览">
-          <div class="material-copy"><div><p class="eyebrow">当前材质</p><h3 data-material-name>超白玻璃</h3></div><p data-material-description>高透光、低模糊，边缘折射清晰。适合轻量导航与短暂浮层。</p></div>
-        </div>
-        <div class="material-dock" aria-label="选择玻璃材质">
-          <button class="material-button is-active" type="button" data-name="超白玻璃" data-description="高透光、低模糊，边缘折射清晰。适合轻量导航与短暂浮层。" data-blur="2" data-sat="1.12" data-opacity=".95"><i class="ph ph-circle" aria-hidden="true"></i><span>超白玻璃</span></button>
-          <button class="material-button" type="button" data-name="磨砂玻璃" data-description="更厚的模糊让背景退后一步，适合工具面板与持续停留的控件。" data-blur="12" data-sat="1.05" data-opacity=".86"><i class="ph ph-snowflake" aria-hidden="true"></i><span>磨砂玻璃</span></button>
-          <button class="material-button" type="button" data-name="水波纹玻璃" data-description="更高饱和度与轻微放大模拟流动折射，用在需要强调的焦点区域。" data-blur="6" data-sat="1.5" data-opacity=".9"><i class="ph ph-waves" aria-hidden="true"></i><span>水波纹</span></button>
-          <button class="material-button" type="button" data-name="夹丝玻璃" data-description="细密纹理提高边界感，同时保留内容从下方穿过的空间关系。" data-blur="9" data-sat=".9" data-opacity=".82"><i class="ph ph-grid-nine" aria-hidden="true"></i><span>夹丝玻璃</span></button>
-          <button class="material-button" type="button" data-name="茶色玻璃" data-description="温暖色偏让浮层更有重量，适合确认、收藏与高价值动作。" data-blur="5" data-sat="1.8" data-opacity=".74"><i class="ph ph-sun" aria-hidden="true"></i><span>茶色玻璃</span></button>
-          <button class="material-button" type="button" data-name="彩釉玻璃" data-description="高饱和度只应少量使用，用来标记状态，而不是铺满整个界面。" data-blur="8" data-sat="2.2" data-opacity=".68"><i class="ph ph-sparkle" aria-hidden="true"></i><span>彩釉玻璃</span></button>
-        </div>
-      </div>
-    </section>
-
-    <section class="story" id="principles" aria-label="流体界面的五个原则">
+    <section class="story" id="principles" aria-label="知识地图">
       <div class="story-stage">
         <div class="story-veil" aria-hidden="true"></div>
+        <div class="story-ghost" aria-hidden="true">01</div>
         <div class="story-shell">
-          <p class="story-kicker">让界面有手感的五个原则</p>
+          <p class="story-kicker">知识地图 · 五个房间</p>
           <div class="story-counter" aria-live="polite"><span>01</span> / 05</div>
 
           <article class="story-card" data-story-step="0">
-            <p class="story-era">01 · 响应 Response</p>
-            <h2>反馈发生在按下的瞬间。</h2>
-            <p>延迟一旦出现，"直接操纵"的感觉就会跌落悬崖。好的按钮在指尖落下的那一帧就亮起，而不是等你松手；拖动中的元素要与手指 1:1 同步，而不是在结束后才播放动画。本页所有按钮的按下反馈都控制在 70 毫秒内。</p>
-            <div class="story-fact"><i class="ph ph-lightning"></i><span>按下即响应，而非松手后</span></div>
+            <p class="story-era">01 · 材料 Materials</p>
+            <h2>合金，是元素的民主。</h2>
+            <p>传统合金一主多辅，高熵合金却让四五种元素等比例混居——混乱本身（构型熵）反而把固溶体焊稳了。而决定一块金属生死的往往是裂纹尖端那几百个原子：应力集中、位错发射、键的断裂。想看清它们，就得在 LAMMPS 里逐原子地模拟，再用 OVITO 把每一帧画出来。这是我现在正在做的事。</p>
+            <div class="story-fact"><i class="ph ph-atom"></i><code>ΔS_conf = R ln N</code></div>
           </article>
 
           <article class="story-card" data-story-step="1">
-            <p class="story-era">02 · 弹簧 Springs</p>
-            <h2>动画不是脚本，是对话。</h2>
-            <p>固定时长的动画无法回应新的输入，弹簧可以——新目标只是改变了力的方向，运动本身从不中断。苹果用两个参数描述它：阻尼比控制回弹，响应值控制快慢。日常 UI 用临界阻尼（1.0），只有甩出去的东西才配得上一点弹跳。</p>
-            <div class="story-fact"><i class="ph ph-waveform"></i><code>damping 1.0 · response 0.3–0.4s</code></div>
+            <p class="story-era">02 · 数学 Mathematics</p>
+            <h2>二阶导数里藏着形状。</h2>
+            <p>一阶导数告诉你往哪走，Hessian（二阶偏导矩阵）告诉你脚下是山谷、山脊还是鞍点。同一个矩阵换到晶格里就叫力常数矩阵：把它对角化，特征值开根号，得到的就是声子——晶体的振动模式。一页微积分，两个学科在用。</p>
+            <div class="story-fact"><i class="ph ph-function"></i><code>Hessian → 对角化 → 声子谱</code></div>
           </article>
 
           <article class="story-card" data-story-step="2">
-            <p class="story-era">03 · 液态玻璃 Liquid Glass</p>
-            <h2>玻璃不是装饰，是层级。</h2>
-            <p>半透明材质让内容从下方穿过，模糊与饱和度告诉你什么浮在上面。越大的表面越"厚"：更强的模糊、更深的阴影；顶部一道亮边是光落在玻璃上的痕迹。本页的导航栏与卡片就是这样构成的——毛玻璃、白色、一点香槟金。</p>
-            <div class="story-fact"><i class="ph ph-drop-half"></i><code>blur() + saturate() 同时出现</code></div>
+            <p class="story-era">03 · 物理 Physics</p>
+            <h2>夸克从不单独出场。</h2>
+            <p>把两个夸克往两边拉，连接它们的色场像一根弦，能量随距离线性增长——拉到某个程度，弦里积攒的能量足够凭空造出一对新夸克，弦断成两根更短的弦。所以你永远抓不到自由夸克，这就是色禁闭：越挣扎，绑得越紧的力。</p>
+            <div class="story-fact"><i class="ph ph-magnet"></i><span>QCD · 色禁闭 · V(r) ∝ r</span></div>
           </article>
 
           <article class="story-card" data-story-step="3">
-            <p class="story-era">04 · 字体 Typography</p>
-            <h2>字距随字号而变。</h2>
-            <p>大标题的字母天生显得松散，需要收紧字距；正文回到零；小字反而要微微放宽以保证清晰。同一个 letter-spacing 用到底，总会在某个字号上出错。行高的规律相反：标题紧凑，正文舒展。本页大标题收紧了 3.5%，正文一分未动。</p>
-            <div class="story-fact"><i class="ph ph-text-aa"></i><code>display −0.035em · body 0</code></div>
+            <p class="story-era">04 · 网络 Networks</p>
+            <h2>洋葱有三层皮。</h2>
+            <p>Tor 把你的流量裹进三层加密，经过三跳中继：入口节点知道你是谁但不知道你去哪，出口节点相反，中间节点两头都不知道。匿名不靠藏，靠拆——把"身份"和"目的地"这两条信息拆到永不见面。当然，掐着两头做流量关联，仍是它最深的软肋。</p>
+            <div class="story-fact"><i class="ph ph-shield-check"></i><code>3 hops · 逐层剥离的加密</code></div>
           </article>
 
           <article class="story-card" data-story-step="4">
-            <p class="story-era">05 · 包容 Reduce Motion</p>
-            <h2>减弱动效，不等于没有反馈。</h2>
-            <p>对动效敏感的人需要的是更温和的等价物：把滑动与弹跳换成短促的淡入淡出，保留帮助理解的透明度变化，收起视差与大位移。在系统里开启"减弱动态效果"，这个页面会安静下来——但每一次交互仍然有回应。</p>
-            <div class="story-fact"><i class="ph ph-hand-heart"></i><code>prefers-reduced-motion</code></div>
+            <p class="story-era">05 · 文字 Letters</p>
+            <h2>野草在地火上开花。</h2>
+            <p>鲁迅在《野草》里把绝望锻造成意象：地火在地下运行奔突，熔岩一旦喷出，将烧尽一切野草和乔木——"于是并且无可朽腐"。散文诗是他最精密的仪器，测量希望与虚妄之间的电位差。读理科的人也该有一台这样的仪器。</p>
+            <div class="story-fact"><i class="ph ph-feather"></i><span>《野草》1924–1926</span></div>
           </article>
 
           <div class="story-nav" aria-label="章节导航">
-            <button class="story-dot" type="button" data-story-jump="0" aria-label="第 1 章"></button>
-            <button class="story-dot" type="button" data-story-jump="1" aria-label="第 2 章"></button>
-            <button class="story-dot" type="button" data-story-jump="2" aria-label="第 3 章"></button>
-            <button class="story-dot" type="button" data-story-jump="3" aria-label="第 4 章"></button>
-            <button class="story-dot" type="button" data-story-jump="4" aria-label="第 5 章"></button>
+            <button class="story-dot" type="button" data-story-jump="0" aria-label="第 1 章 材料"></button>
+            <button class="story-dot" type="button" data-story-jump="1" aria-label="第 2 章 数学"></button>
+            <button class="story-dot" type="button" data-story-jump="2" aria-label="第 3 章 物理"></button>
+            <button class="story-dot" type="button" data-story-jump="3" aria-label="第 4 章 网络"></button>
+            <button class="story-dot" type="button" data-story-jump="4" aria-label="第 5 章 文字"></button>
           </div>
 
           <div class="story-progress" aria-hidden="true"><span></span></div>
@@ -747,72 +1065,82 @@
       </div>
     </section>
 
-    <section class="labs" id="lab" aria-labelledby="lab-title">
+    <section class="materials" id="materials" aria-labelledby="materials-title">
+      <div class="materials-band" aria-hidden="true"></div>
+      <header class="materials-head">
+        <p class="eyebrow">材质图鉴 Materials, the other kind</p>
+        <h2 id="materials-title">另一种"材料学"。</h2>
+        <p>白天研究金属的材料，晚上研究界面的材质。下面三张卡片盖在同一条彩色光带上：模糊越强、阴影越深，就越像一块"厚"玻璃，也就越靠近你——厚度不是审美偏好，是层级声明。滚动时留意它们各自不同的滑动速度。</p>
+      </header>
+      <div class="material-tiles">
+        <article class="tile tile-thin">
+          <h3>超薄 Ultra-thin <code>blur(6px)</code></h3>
+          <p>几乎透明，背景清晰可辨。适合悬浮的小组件：徽标、提示气泡、工具条上的分组。它声明"我只是轻轻搭在内容上"。</p>
+        </article>
+        <article class="tile tile-regular">
+          <h3>常规 Regular <code>blur(18px)</code></h3>
+          <p>背景化为色彩的印象。导航栏、侧栏、弹出菜单的标准选择——内容从下方穿过时你能感到它在流动，但读不出细节。</p>
+        </article>
+        <article class="tile tile-thick">
+          <h3>厚 Thick <code>blur(32px)</code></h3>
+          <p>最重的材质配最深的阴影，用于模态面板与大尺寸卡片。表面越大越要"厚"，否则大面积的轻薄会显得单薄失重。</p>
+        </article>
+      </div>
+      <p class="materials-note">
+        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+        <span><strong>唯一的禁忌：</strong>浅色玻璃不要叠在另一块浅色玻璃上——两层半透明相乘，文字的可读性会直接塌掉。要叠层，就让上层明显更厚、更白，或者垫一层实色。</span>
+      </p>
+    </section>
+
+    <section class="lab" id="lab" aria-labelledby="lab-title">
       <div class="lab-shell">
-        <div class="section-head">
-          <div><p class="eyebrow">Glass Lab · 参数实验台</p><h2 id="lab-title">把玻璃拆开，<br>亲手调一遍。</h2></div>
-          <p>拖动参数不是为了找到唯一答案，而是建立直觉：模糊控制厚度，透明度控制距离，饱和度控制光感。</p>
-        </div>
-        <div class="lab-grid">
-          <div class="lab-panel">
-            <h3>材质参数</h3><p>三个数值会实时作用到右侧样本。按下按钮还能观察触摸反馈与弹簧回弹。</p>
-            <div class="control"><label for="blur-control">模糊强度 <output id="blur-output">24px</output></label><input id="blur-control" type="range" min="0" max="48" value="24"></div>
-            <div class="control"><label for="opacity-control">玻璃透明度 <output id="opacity-output">48%</output></label><input id="opacity-control" type="range" min="18" max="82" value="48"></div>
-            <div class="control"><label for="saturation-control">背景饱和度 <output id="saturation-output">170%</output></label><input id="saturation-control" type="range" min="80" max="240" value="170"></div>
-            <div class="control"><label for="spring-control">回弹力度 <output id="spring-output">0.72</output></label><input id="spring-control" type="range" min="35" max="95" value="72"></div>
-            <button class="lab-action" type="button" data-spring-trigger><i class="ph ph-hand-tap" aria-hidden="true"></i> 按下试试</button>
+        <p class="eyebrow">调参台 Spring Lab</p>
+        <h2 id="lab-title">亲手拧一拧弹簧。</h2>
+        <p>驱动整个页面的方程只有一行：<code>a = −ω²(x−x₀) − 2ζωv</code>。它既是界面动画，也是简谐振子——分子动力学模拟里每个原子都在解它。参数交给你：试试苹果的出厂值 <strong>1.0 / 0.4s</strong>，再把阻尼降到 0.4，感受什么叫"弹过头"。</p>
+        <div class="lab-controls">
+          <div class="lab-field">
+            <label for="lab-damping">阻尼比 Damping <output id="lab-damping-out">0.80</output></label>
+            <input type="range" id="lab-damping" min="0.3" max="1.2" step="0.01" value="0.8">
+            <small>1.0 = 临界阻尼，不过冲；越低越弹</small>
           </div>
-          <div class="lab-panel glass-bench" aria-label="交互玻璃样本">
-            <div class="bench-card" data-bench-card><img src="assets/liquid-lens-hero.webp" alt="可调节的玻璃光学样本"></div>
+          <div class="lab-field">
+            <label for="lab-response">响应 Response <output id="lab-response-out">0.40s</output></label>
+            <input type="range" id="lab-response" min="0.15" max="0.8" step="0.01" value="0.4">
+            <small>到达目标的快慢；不是"时长"</small>
           </div>
+          <button class="button primary" type="button" id="lab-go">释放 <i class="ph ph-play" aria-hidden="true"></i></button>
         </div>
+        <div class="lab-runway" aria-hidden="true">
+          <div class="lab-puck" id="lab-puck"><i class="ph ph-cube-transparent"></i></div>
+        </div>
+        <p class="lab-readout" id="lab-readout">上一次运行：<strong>—</strong>　过冲 <em>—</em>　稳定用时 <em>—</em></p>
       </div>
     </section>
 
-    <section class="type-lab" id="typography" aria-labelledby="type-title">
-      <div class="section-head">
-        <div><p class="eyebrow">Typography Lab · 字体实验</p><h2 id="type-title">字距不是装饰，<br>是阅读的呼吸。</h2></div>
-        <p>大字要更紧，正文要舒展，小字反而需要一点空气。拖动控制器，直接看同一句话如何改变气质。</p>
-      </div>
-      <div class="type-shell">
-        <div class="type-stage"><p class="type-sample" data-type-sample>光落在<br>玻璃边缘。</p><p class="type-meta">同一套系统字体，在字号、字重与字距的共同作用下，可以从“说明文字”变成有节奏的空间构图。</p></div>
-        <div class="lab-panel type-controls">
-          <h3>排版参数</h3><p>变化会立即应用到左侧标题。</p>
-          <div class="control"><label for="tracking-control">字距 <output id="tracking-output">−5%</output></label><input id="tracking-control" type="range" min="-10" max="8" value="-5"></div>
-          <div class="control"><label for="weight-control">字重 <output id="weight-output">700</output></label><input id="weight-control" type="range" min="400" max="800" step="50" value="700"></div>
-          <div class="control"><label for="leading-control">行高 <output id="leading-output">0.90</output></label><input id="leading-control" type="range" min="82" max="120" value="90"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="features" id="reference" aria-label="速查与延伸">
+    <section class="features" id="reference" aria-label="正在做与工具箱">
       <div class="feature-grid">
         <article class="feature">
-          <i class="feature-icon ph ph-gauge" aria-hidden="true"></i>
-          <h3>参数速查</h3>
-          <p>移动/归位用阻尼 1.0、响应 0.4s；抽屉与面板用阻尼 0.8、响应 0.3s。判断"甩回还是甩出"看松手时的速度方向，而不是位置。惯性投射用衰减率 0.998。</p>
+          <i class="feature-icon ph ph-target" aria-hidden="true"></i>
+          <h3>正在做 Now</h3>
+          <p>在 WSL2 里搭 LAMMPS，跑裂纹尖端的分子动力学模拟，用 OVITO 做逐帧可视化；下一步换上高熵合金的势函数，看多主元晶格里裂纹如何选择自己的路。</p>
         </article>
         <article class="feature">
-          <i class="feature-icon ph ph-hand-grabbing" aria-hidden="true"></i>
-          <h3>动手实验</h3>
-          <p>回到顶部抓住玻璃卡片：拖出 90px 后会遇到渐进的橡皮筋阻力；甩出去，弹簧会接住你手指的速度；半路截住它，运动无缝续接——这就是"可打断"。</p>
+          <i class="feature-icon ph ph-wrench" aria-hidden="true"></i>
+          <h3>工具箱 Toolbox</h3>
+          <p>LAMMPS 与 OVITO 负责原子，Python 负责数据，Git 负责后悔药；这个页面本身零依赖——一个 HTML 文件，一个弹簧类，没有框架。查看源码就是最好的注释。</p>
         </article>
         <article class="feature">
           <i class="feature-icon ph ph-books" aria-hidden="true"></i>
-          <h3>延伸阅读</h3>
-          <p>WWDC 讲座《Designing Fluid Interfaces》与《The Details of UI Typography》是本页的源头；网页端的整理见 <a href="https://github.com/emilkowalski/skills" target="_blank" rel="noopener noreferrer">emilkowalski/skills</a>。</p>
+          <h3>书架 Reading</h3>
+          <p>WWDC 讲座《Designing Fluid Interfaces》教会这个页面怎么动；网页端的整理见 <a href="https://github.com/emilkowalski/skills" target="_blank" rel="noopener noreferrer">emilkowalski/skills</a>；床头是《野草》和一本翻旧了的高数。</p>
         </article>
       </div>
-    </section>
-
-    <section class="finale" aria-labelledby="finale-title">
-      <div class="finale-inner"><p class="eyebrow">End of the glass, start of the interface</p><h2 id="finale-title">手感不是特效，<br>是每一次回应。</h2><p>真正的苹果感来自连续、可打断、可理解的反馈。玻璃负责层级，弹簧负责时间，字体负责秩序，而你负责决定它们什么时候出现。</p><div class="actions" style="justify-content:center"><a class="button primary" href="#top">回到顶部 <i class="ph ph-arrow-up" aria-hidden="true"></i></a><a class="button secondary" href="#materials">再玩一次材质</a></div></div>
     </section>
   </main>
 
   <footer>
-    <span>玻璃与弹簧 · 基于苹果设计原则的交互科普</span>
-    <span>Designed for GitHub Pages</span>
+    <span>格物志 · 从原子到文字</span>
+    <span>Blynhilder · Designed for GitHub Pages</span>
   </footer>
 
   <script>
@@ -823,22 +1151,10 @@
       const storyCards = [...document.querySelectorAll('.story-card')];
       const storyDots = [...document.querySelectorAll('.story-dot')];
       const storyCounter = document.querySelector('.story-counter span');
+      const storyGhost = document.querySelector('.story-ghost');
+      const materials = document.querySelector('.materials');
       const features = document.querySelector('.features');
       const snapshot = document.querySelector('.snapshot');
-      const materialStage = document.querySelector('[data-material-stage]');
-      const materialButtons = [...document.querySelectorAll('.material-button')];
-      const materialName = document.querySelector('[data-material-name]');
-      const materialDescription = document.querySelector('[data-material-description]');
-      const benchCard = document.querySelector('[data-bench-card]');
-      const springTrigger = document.querySelector('[data-spring-trigger]');
-      const blurControl = document.querySelector('#blur-control');
-      const opacityControl = document.querySelector('#opacity-control');
-      const saturationControl = document.querySelector('#saturation-control');
-      const springControl = document.querySelector('#spring-control');
-      const typeSample = document.querySelector('[data-type-sample]');
-      const trackingControl = document.querySelector('#tracking-control');
-      const weightControl = document.querySelector('#weight-control');
-      const leadingControl = document.querySelector('#leading-control');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       let frame = 0;
       let lastTime = 0;
@@ -850,12 +1166,15 @@
          Interruptible by construction: re-targeting keeps current value AND velocity. */
       class Spring {
         constructor(response, dampingRatio, epsilon) {
-          this.omega = (2 * Math.PI) / response;
-          this.zeta = dampingRatio;
           this.epsilon = epsilon;
           this.value = 0;
           this.velocity = 0;
           this.target = 0;
+          this.tune(response, dampingRatio);
+        }
+        tune(response, dampingRatio) {
+          this.omega = (2 * Math.PI) / response;
+          this.zeta = dampingRatio;
         }
         step(dt) {
           const accel = -this.omega * this.omega * (this.value - this.target)
@@ -873,15 +1192,22 @@
       // Scroll-linked motion: critically damped (no overshoot on ambient UI)
       const heroSpring = new Spring(.55, 1, .0004);
       const storySpring = new Spring(.5, 1, .0004);
+      const matSpring = new Spring(.6, 1, .0004);
       // Card return: a flick carried momentum, so a little bounce is earned
       const cardX = new Spring(.45, .78, .05);
       const cardY = new Spring(.45, .78, .05);
-      const benchSpring = new Spring(.62, .72, .05);
 
-      const sectionProgress = (section) => {
+      const sectionProgress = (section, lead = 0) => {
         const rect = section.getBoundingClientRect();
-        const distance = Math.max(1, section.offsetHeight - window.innerHeight);
-        return clamp(-rect.top / distance);
+        const distance = Math.max(1, section.offsetHeight - window.innerHeight + lead);
+        return clamp((-rect.top + lead) / distance);
+      };
+
+      // Materials section: progress spans its journey through the viewport
+      const viewportProgress = (section) => {
+        const rect = section.getBoundingClientRect();
+        const total = rect.height + window.innerHeight;
+        return clamp((window.innerHeight - rect.top) / total);
       };
 
       const renderStory = (progress) => {
@@ -903,9 +1229,16 @@
           card.setAttribute('aria-hidden', index === nextActive ? 'false' : 'true');
         });
 
+        // Ghost numeral slides at its own rate — a deeper parallax layer
+        const frac = timeline - nextActive; // -0.5 .. 0.5
+        storyGhost.style.setProperty('--ghost-y', (frac * -190).toFixed(1));
+        storyGhost.style.opacity = (1 - Math.abs(frac) * 1.4).toFixed(2);
+
         if (nextActive !== activeStep) {
           activeStep = nextActive;
-          storyCounter.textContent = String(activeStep + 1).padStart(2, '0');
+          const label = String(activeStep + 1).padStart(2, '0');
+          storyCounter.textContent = label;
+          storyGhost.textContent = label;
           storyDots.forEach((dot, index) => {
             const selected = index === activeStep;
             dot.classList.toggle('is-active', selected);
@@ -919,21 +1252,195 @@
         root.style.setProperty('--page-progress', Math.min(1, window.scrollY / maxScroll));
         heroSpring.target = reducedMotion.matches ? 0 : sectionProgress(heroScroll);
         storySpring.target = reducedMotion.matches ? 0 : sectionProgress(story);
+        matSpring.target = reducedMotion.matches ? .5 : viewportProgress(materials);
+        updateIsland();
       };
 
-      /* ---- Draggable snapshot card: direct manipulation demo ---- */
+      /* ---- Dynamic Island: announces the section you just entered ---- */
+      const island = document.getElementById('island');
+      const islandLabel = document.getElementById('island-label');
+      const islandChevron = document.getElementById('island-chevron');
+      const sections = [
+        { el: heroScroll, label: '从原子到文字' },
+        { el: story, label: '知识地图' },
+        { el: materials, label: '材质图鉴' },
+        { el: document.getElementById('lab'), label: '调参台' },
+        { el: features, label: '正在做' }
+      ];
+      let currentSection = -1;
+      let peekTimer = 0;
+
+      const updateIsland = () => {
+        let idx = 0;
+        const probe = window.innerHeight * .4;
+        sections.forEach((s, i) => {
+          if (s.el.getBoundingClientRect().top <= probe) idx = i;
+        });
+        if (idx !== currentSection) {
+          currentSection = idx;
+          islandLabel.textContent = sections[idx].label;
+          if (!reducedMotion.matches) {
+            island.classList.add('is-peek');
+            clearTimeout(peekTimer);
+            peekTimer = setTimeout(() => island.classList.remove('is-peek'), 1800);
+          }
+        }
+      };
+
+      /* ---- Control Center sheet: glass sliding over the page ----
+         Flick physics: momentum projection decides open vs close (decay 0.998). */
+      const sheet = document.getElementById('sheet');
+      const sheetBackdrop = document.getElementById('sheet-backdrop');
+      const sheetGrabber = document.getElementById('sheet-grabber');
+      const sheetSpring = new Spring(.42, .85, .4);
+      let sheetTravel = 600;
+      let sheetOpen = false;
+
+      const applySheet = (y) => {
+        sheet.style.setProperty('--sheet-y', y.toFixed(1) + 'px');
+        root.style.setProperty('--sheet-p', clamp(1 + y / sheetTravel).toFixed(3));
+      };
+
+      const sheetDrag = { active: false, pending: false, pointerId: null, startY: 0, startVal: 0, history: [], el: null };
+
+      const measureSheet = () => {
+        sheetTravel = sheet.offsetHeight + 100;
+        if (!sheetOpen && !sheetDrag.active) {
+          sheetSpring.value = -sheetTravel;
+          sheetSpring.target = -sheetTravel;
+          applySheet(sheetSpring.value);
+        }
+      };
+
+      const setSheetState = (open) => {
+        sheetOpen = open;
+        document.body.classList.toggle('sheet-open', open);
+        island.setAttribute('aria-expanded', String(open));
+        sheet.setAttribute('aria-hidden', String(!open));
+      };
+
+      const project = (v) => v * .499; // decay 0.998 → v/1000 · d/(1−d)
+
+      const flickSheet = (velocity) => {
+        const projected = sheetSpring.value + project(velocity);
+        const opening = projected > -sheetTravel / 2;   // destination decided by momentum, not position
+        sheetSpring.velocity = velocity;
+        sheetSpring.target = opening ? 0 : -sheetTravel;
+        setSheetState(opening);
+        schedule();
+      };
+
+      const toggleSheet = (open) => {
+        if (reducedMotion.matches) {
+          sheetSpring.value = open ? 0 : -sheetTravel;
+          sheetSpring.velocity = 0;
+          sheetSpring.target = sheetSpring.value;
+          applySheet(sheetSpring.value);
+          setSheetState(open);
+          return;
+        }
+        flickSheet(open ? 900 : -900);
+      };
+
+      const sheetRubber = (y) => {
+        if (y > 0) return rubberband(y, 300, .5);
+        if (y < -sheetTravel) return -sheetTravel - rubberband(-sheetTravel - y, 300, .5);
+        return y;
+      };
+
+      /* one drag engine serves both handles: the island and the grabber */
+      const sheetPointerDown = (el) => (e) => {
+        if (reducedMotion.matches) return;
+        if (e.button !== undefined && e.button !== 0) return;
+        sheetDrag.pending = true;
+        sheetDrag.active = false;
+        sheetDrag.pointerId = e.pointerId;
+        sheetDrag.startY = e.clientY;
+        sheetDrag.startVal = sheetSpring.value;   // grab mid-flight, no jump
+        sheetDrag.history = [{ y: e.clientY, t: performance.now() }];
+        sheetDrag.el = el;
+        el.setPointerCapture(e.pointerId);
+      };
+
+      const sheetPointerMove = (e) => {
+        if (e.pointerId !== sheetDrag.pointerId || (!sheetDrag.pending && !sheetDrag.active)) return;
+        const dy = e.clientY - sheetDrag.startY;
+        if (sheetDrag.pending && Math.abs(dy) > 6) {
+          sheetDrag.pending = false;
+          sheetDrag.active = true;
+          island.classList.add('is-held');
+          sheet.classList.add('is-held');
+        }
+        if (!sheetDrag.active) return;
+        sheetDrag.history.push({ y: e.clientY, t: performance.now() });
+        if (sheetDrag.history.length > 8) sheetDrag.history.shift();
+        sheetSpring.value = sheetRubber(sheetDrag.startVal + dy);   // 1:1 with the finger
+        applySheet(sheetSpring.value);
+      };
+
+      const sheetPointerUp = (e) => {
+        if (e.pointerId !== sheetDrag.pointerId) return;
+        const wasActive = sheetDrag.active;
+        const wasTap = sheetDrag.pending;
+        const source = sheetDrag.el;
+        sheetDrag.pending = false;
+        sheetDrag.active = false;
+        sheetDrag.pointerId = null;
+        island.classList.remove('is-held');
+        sheet.classList.remove('is-held');
+        if (wasTap && source === island) { toggleSheet(!sheetOpen); return; }
+        if (!wasActive) return;
+        const h = sheetDrag.history;
+        let vy = 0;
+        if (h.length > 1) {
+          const newest = h[h.length - 1];
+          let oldest = h[0];
+          for (let i = h.length - 2; i >= 0; i--) {
+            if (newest.t - h[i].t >= 60) { oldest = h[i]; break; }
+          }
+          vy = (newest.y - oldest.y) / Math.max(.001, (newest.t - oldest.t) / 1000);
+        }
+        flickSheet(vy);   // velocity handoff into the spring
+      };
+
+      [island, sheetGrabber].forEach((el) => {
+        el.addEventListener('pointerdown', sheetPointerDown(el));
+        el.addEventListener('pointermove', sheetPointerMove);
+        el.addEventListener('pointerup', sheetPointerUp);
+        el.addEventListener('pointercancel', sheetPointerUp);
+      });
+
+      island.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSheet(!sheetOpen); }
+      });
+      islandChevron.addEventListener('click', (e) => { e.stopPropagation(); toggleSheet(!sheetOpen); });
+      islandChevron.addEventListener('pointerdown', (e) => e.stopPropagation());
+      sheetBackdrop.addEventListener('click', () => toggleSheet(false));
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheetOpen) toggleSheet(false); });
+
+      document.querySelectorAll('.sheet-tile[data-goto]').forEach((tile) => {
+        tile.addEventListener('click', () => {
+          toggleSheet(false);
+          const target = document.querySelector(tile.dataset.goto);
+          if (target) setTimeout(() => target.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth' }), 60);
+        });
+      });
+
+      document.getElementById('hero-open-sheet').addEventListener('click', () => toggleSheet(true));
+
+      /* ---- Draggable bench card: direct manipulation demo ---- */
       const drag = {
         active: false, pending: false, pointerId: null,
         startPointerX: 0, startPointerY: 0,
         startCardX: 0, startCardY: 0,
         history: []
       };
-      const FREE_RADIUS = 90;      // 1:1 zone before resistance kicks in
-      const HYSTERESIS = 8;        // px of movement before the drag commits
+      const FREE_RADIUS = 90;
+      const HYSTERESIS = 8;
 
-      // Progressive resistance past a soft boundary — never a hard stop
-      const rubberband = (overshoot, dimension = 420, constant = .55) =>
-        (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+      function rubberband(overshoot, dimension = 420, constant = .55) {
+        return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+      }
 
       const withResistance = (d) => {
         const mag = Math.abs(d);
@@ -941,9 +1448,11 @@
         return Math.sign(d) * (FREE_RADIUS + rubberband(mag - FREE_RADIUS));
       };
 
-      const setDragVars = (x, y) => {
+      const setDragVars = (x, y, vx) => {
         snapshot.style.setProperty('--drag-x', x.toFixed(2) + 'px');
         snapshot.style.setProperty('--drag-y', y.toFixed(2) + 'px');
+        // Velocity leans the glass — liquid inertia, capped at ±6°
+        snapshot.style.setProperty('--drag-rot', clamp(vx * .006, -6, 6).toFixed(2));
       };
 
       const releaseVelocity = () => {
@@ -959,6 +1468,13 @@
       };
 
       if (snapshot && !reducedMotion.matches) {
+        // Specular sheen chases the pointer even when just hovering
+        snapshot.addEventListener('pointermove', (e) => {
+          const r = snapshot.getBoundingClientRect();
+          snapshot.style.setProperty('--sheen-x', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%');
+          snapshot.style.setProperty('--sheen-y', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%');
+        });
+
         snapshot.addEventListener('pointerdown', (e) => {
           if (e.button !== undefined && e.button !== 0) return;
           drag.pending = true;
@@ -985,10 +1501,14 @@
           if (!drag.active) return;
           drag.history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
           if (drag.history.length > 8) drag.history.shift();
+          const h = drag.history;
+          const instVx = h.length > 1
+            ? (h[h.length - 1].x - h[h.length - 2].x) / Math.max(.001, (h[h.length - 1].t - h[h.length - 2].t) / 1000)
+            : 0;
           // 1:1 tracking, honoring where they grabbed it
           cardX.value = withResistance(drag.startCardX + dx);
           cardY.value = withResistance(drag.startCardY + dy);
-          setDragVars(cardX.value, cardY.value);
+          setDragVars(cardX.value, cardY.value, instVx);
         });
 
         const endDrag = (e) => {
@@ -1012,67 +1532,48 @@
         snapshot.addEventListener('dragstart', (e) => e.preventDefault());
       }
 
-      /* ---- Material gallery: one source asset, six optical treatments ---- */
-      materialButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          materialButtons.forEach((item) => item.classList.toggle('is-active', item === button));
-          materialStage.style.setProperty('--material-blur', `${button.dataset.blur}px`);
-          materialStage.style.setProperty('--material-sat', button.dataset.sat);
-          materialStage.style.setProperty('--material-opacity', button.dataset.opacity);
-          materialName.textContent = button.dataset.name;
-          materialDescription.textContent = button.dataset.description;
-          materialStage.classList.add('is-changing');
-          window.setTimeout(() => materialStage.classList.remove('is-changing'), 360);
-        });
-      });
+      /* ---- Spring Lab: hands-on parameter tuning ---- */
+      const labPuck = document.getElementById('lab-puck');
+      const labGo = document.getElementById('lab-go');
+      const labDamping = document.getElementById('lab-damping');
+      const labResponse = document.getElementById('lab-response');
+      const labDampingOut = document.getElementById('lab-damping-out');
+      const labResponseOut = document.getElementById('lab-response-out');
+      const labReadout = document.getElementById('lab-readout');
+      const labSpring = new Spring(.4, .8, .12);
+      const lab = { atEnd: false, running: false, startTime: 0, maxOvershoot: 0, travel: 1 };
 
-      const bindRange = (input, output, render) => {
-        if (!input || !output) return;
-        const update = () => { output.textContent = render(input.value); };
-        input.addEventListener('input', update);
-        update();
+      const labTravel = () => {
+        const runway = labPuck.parentElement;
+        return Math.max(60, runway.clientWidth - labPuck.offsetWidth - 36);
       };
 
-      bindRange(blurControl, document.querySelector('#blur-output'), (value) => {
-        benchCard.style.setProperty('--bench-blur', `${value}px`);
-        return `${value}px`;
-      });
-      bindRange(opacityControl, document.querySelector('#opacity-output'), (value) => {
-        benchCard.style.setProperty('--bench-opacity', (value / 100).toFixed(2));
-        return `${value}%`;
-      });
-      bindRange(saturationControl, document.querySelector('#saturation-output'), (value) => {
-        benchCard.style.setProperty('--bench-sat', `${value}%`);
-        return `${value}%`;
-      });
-      bindRange(springControl, document.querySelector('#spring-output'), (value) => {
-        benchSpring.zeta = value / 100;
-        return (value / 100).toFixed(2);
-      });
+      const syncLabLabels = () => {
+        labDampingOut.textContent = Number(labDamping.value).toFixed(2);
+        labResponseOut.textContent = Number(labResponse.value).toFixed(2) + 's';
+      };
+      labDamping.addEventListener('input', syncLabLabels);
+      labResponse.addEventListener('input', syncLabLabels);
+      syncLabLabels();
 
-      springTrigger?.addEventListener('click', () => {
+      labGo.addEventListener('click', () => {
+        lab.travel = labTravel();
+        lab.atEnd = !lab.atEnd;
+        const target = lab.atEnd ? lab.travel : 0;
         if (reducedMotion.matches) {
-          benchCard.style.setProperty('--bench-scale', '.96');
-          window.setTimeout(() => benchCard.style.setProperty('--bench-scale', '1'), 120);
+          labSpring.value = target;
+          labSpring.velocity = 0;
+          labSpring.target = target;
+          labPuck.style.transform = 'translateX(' + target + 'px)';
+          labReadout.innerHTML = '减弱动效已开启：<strong>直接到位</strong>，未播放弹簧动画';
           return;
         }
-        benchSpring.value = -72;
-        benchSpring.velocity = 980;
-        benchSpring.target = 0;
+        labSpring.tune(Number(labResponse.value), Number(labDamping.value));
+        labSpring.target = target;
+        lab.running = true;
+        lab.startTime = performance.now();
+        lab.maxOvershoot = 0;
         schedule();
-      });
-
-      bindRange(trackingControl, document.querySelector('#tracking-output'), (value) => {
-        typeSample.style.setProperty('--type-track', `${value / 100}em`);
-        return `${value < 0 ? '−' : '+'}${Math.abs(value)}%`;
-      });
-      bindRange(weightControl, document.querySelector('#weight-output'), (value) => {
-        typeSample.style.setProperty('--type-weight', value);
-        return value;
-      });
-      bindRange(leadingControl, document.querySelector('#leading-output'), (value) => {
-        typeSample.style.lineHeight = (value / 100).toFixed(2);
-        return (value / 100).toFixed(2);
       });
 
       /* ---- One display-synced loop drives every spring ---- */
@@ -1082,21 +1583,42 @@
 
         heroSpring.step(dt);
         storySpring.step(dt);
+        matSpring.step(dt);
         root.style.setProperty('--hero-progress', heroSpring.value.toFixed(4));
         root.style.setProperty('--story-progress', clamp(storySpring.value).toFixed(4));
+        root.style.setProperty('--mat-progress', clamp(matSpring.value).toFixed(4));
         renderStory(storySpring.value);
 
         if (!drag.active) {
           cardX.step(dt);
           cardY.step(dt);
-          setDragVars(cardX.value, cardY.value);
+          setDragVars(cardX.value, cardY.value, cardX.velocity);
         }
-        benchSpring.step(dt);
-        benchCard?.style.setProperty('--spring-x', `${benchSpring.value.toFixed(2)}px`);
 
-        const busy = !heroSpring.settled || !storySpring.settled
-                  || (!drag.active && (!cardX.settled || !cardY.settled))
-                  || !benchSpring.settled;
+        if (!sheetDrag.active) {
+          sheetSpring.step(dt);
+          applySheet(sheetSpring.value);
+        }
+
+        if (lab.running) {
+          labSpring.step(dt);
+          labPuck.style.transform = 'translateX(' + labSpring.value.toFixed(1) + 'px)';
+          const beyond = lab.atEnd ? labSpring.value - labSpring.target : labSpring.target - labSpring.value;
+          if (beyond > lab.maxOvershoot) lab.maxOvershoot = beyond;
+          if (labSpring.settled) {
+            lab.running = false;
+            const secs = ((performance.now() - lab.startTime) / 1000).toFixed(2);
+            const pct = ((lab.maxOvershoot / lab.travel) * 100).toFixed(1);
+            labReadout.innerHTML = '上一次运行：<strong>阻尼 ' + Number(labDamping.value).toFixed(2)
+              + ' · 响应 ' + Number(labResponse.value).toFixed(2) + 's</strong>　过冲 <em>'
+              + pct + '%</em>　稳定用时 <em>' + secs + 's</em>';
+          }
+        }
+
+        const busy = !heroSpring.settled || !storySpring.settled || !matSpring.settled
+                  || lab.running
+                  || (!sheetDrag.active && !sheetSpring.settled)
+                  || (!drag.active && (!cardX.settled || !cardY.settled));
         frame = busy ? requestAnimationFrame(animate) : 0;
         if (!busy) lastTime = 0;
       };
@@ -1119,14 +1641,17 @@
       });
 
       featureObserver.observe(features);
+      measureSheet();
       readScroll();
       heroSpring.value = heroSpring.target;
       storySpring.value = storySpring.target;
+      matSpring.value = matSpring.target;
       root.style.setProperty('--hero-progress', heroSpring.value.toFixed(4));
       root.style.setProperty('--story-progress', clamp(storySpring.value).toFixed(4));
+      root.style.setProperty('--mat-progress', clamp(matSpring.value).toFixed(4));
       renderStory(storySpring.value);
       window.addEventListener('scroll', schedule, { passive: true });
-      window.addEventListener('resize', schedule);
+      window.addEventListener('resize', () => { measureSheet(); schedule(); });
       reducedMotion.addEventListener?.('change', schedule);
     })();
   </script>
