@@ -624,6 +624,120 @@
       transform-origin: left;
     }
 
+    /* ---------- knowledge dossiers: sourced deep dives ---------- */
+    .deep-dive {
+      position: relative;
+      padding: 128px max(7vw, 48px) 138px;
+      background: rgba(238, 241, 246, .72);
+      border-top: 1px solid rgba(255, 255, 255, .9);
+      border-bottom: 1px solid rgba(29, 29, 31, .06);
+      overflow: hidden;
+    }
+
+    .deep-inner { width: min(1200px, 100%); margin: 0 auto; }
+
+    .deep-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 32px;
+      margin-bottom: 54px;
+    }
+
+    .deep-head h2 { margin: 0; max-width: 760px; font-size: clamp(2.2rem, 4.4vw, 4.1rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 760; }
+    .deep-head > div > p:last-child { max-width: 690px; margin: 18px 0 0; color: var(--muted); font-size: 1rem; line-height: 1.8; }
+    .deep-head .button { white-space: nowrap; }
+
+    .dossier-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+
+    .dossier {
+      border: 1px solid rgba(255, 255, 255, .92);
+      border-radius: 26px;
+      background: rgba(255, 255, 255, .56);
+      backdrop-filter: blur(24px) saturate(165%);
+      -webkit-backdrop-filter: blur(24px) saturate(165%);
+      box-shadow: 0 22px 54px rgba(29, 29, 31, .09), inset 0 1px 0 rgba(255, 255, 255, .95);
+      overflow: hidden;
+    }
+
+    .dossier[open] { grid-column: 1 / -1; background: rgba(255, 255, 255, .74); box-shadow: 0 30px 70px rgba(29, 29, 31, .12), inset 0 1px 0 #fff; }
+    .dossier:last-child { grid-column: 1 / -1; }
+    .dossier summary { list-style: none; cursor: pointer; }
+    .dossier summary::-webkit-details-marker { display: none; }
+
+    .dossier-summary {
+      min-height: 164px;
+      padding: 26px;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 32px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .dossier-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: rgba(201, 163, 90, .12);
+      color: var(--gold);
+      font-size: 1.25rem;
+      box-shadow: inset 0 0 0 1px rgba(162, 120, 44, .12);
+    }
+
+    .dossier-kicker { margin: 1px 0 7px; color: var(--gold); font-size: .7rem; font-weight: 760; letter-spacing: .14em; text-transform: uppercase; }
+    .dossier-summary h3 { margin: 0; font-size: clamp(1.3rem, 2vw, 1.75rem); line-height: 1.12; letter-spacing: -.025em; }
+    .dossier-summary p:last-child { margin: 10px 0 0; color: var(--muted); font-size: .86rem; line-height: 1.65; }
+    .dossier-chevron { margin-top: 5px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(29, 29, 31, .05); color: var(--muted); transition: transform 420ms var(--spring-bounce), background 220ms ease; }
+    .dossier[open] .dossier-chevron { transform: rotate(45deg); background: rgba(201, 163, 90, .14); color: var(--gold); }
+
+    .dossier-body {
+      width: calc(100% - 52px);
+      max-width: 920px;
+      margin: 0 auto 26px;
+      padding-top: 24px;
+      border-top: 1px solid var(--hairline);
+      color: var(--muted);
+      animation: dossier-in 360ms var(--spring-smooth);
+    }
+
+    @keyframes dossier-in { from { opacity: 0; transform: translateY(-8px); } }
+    .dossier-body h4 { margin: 0 0 8px; color: var(--ink); font-size: .9rem; letter-spacing: -.01em; }
+    .dossier-body p { margin: 0 0 18px; font-size: .88rem; line-height: 1.78; }
+    .dossier-body ul { margin: 0 0 20px; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .dossier-body li { position: relative; padding-left: 20px; font-size: .86rem; line-height: 1.7; }
+    .dossier-body li::before { content: ""; position: absolute; left: 2px; top: .72em; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 5px rgba(201, 163, 90, .1); }
+
+    .formula-block {
+      margin: 4px 0 20px;
+      padding: 15px 17px;
+      border-radius: 16px;
+      border: 1px solid rgba(162, 120, 44, .14);
+      background: rgba(201, 163, 90, .08);
+      color: var(--ink);
+      overflow-x: auto;
+    }
+    .formula-block code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .8rem; white-space: nowrap; }
+
+    .source-links { display: flex; flex-wrap: wrap; gap: 9px; padding-top: 4px; }
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid rgba(29, 29, 31, .09);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .58);
+      color: var(--ink);
+      font-size: .72rem;
+      font-weight: 650;
+      transition: transform 260ms var(--spring-bounce), background 180ms ease;
+    }
+    .source-link:hover { transform: translateY(-2px); background: rgba(255, 255, 255, .9); }
+    .source-link i { color: var(--gold); font-size: .86rem; }
+
     /* ---------- materials gallery: thickness = hierarchy ---------- */
     .materials {
       position: relative;
@@ -905,6 +1019,16 @@
       .story-nav { right: -12px; }
       .story-kicker { max-width: calc(100% - 54px); }
       .story-counter { top: 34px; right: 4px; }
+      .deep-dive { padding: 90px 22px 100px; }
+      .deep-head { grid-template-columns: 1fr; gap: 22px; margin-bottom: 34px; }
+      .deep-head .button { width: 100%; }
+      .dossier-grid { grid-template-columns: 1fr; }
+      .dossier[open] { grid-column: auto; }
+      .dossier:last-child { grid-column: auto; }
+      .dossier-summary { min-height: auto; padding: 22px; grid-template-columns: 40px minmax(0, 1fr) 30px; gap: 13px; }
+      .dossier-icon { width: 40px; height: 40px; border-radius: 13px; }
+      .dossier-body { margin: 0 22px 22px; }
+      .formula-block code { white-space: normal; line-height: 1.65; }
       .materials { padding: 90px 22px; }
       .lab { padding: 80px 22px 100px; }
       .feature-grid { grid-template-columns: 1fr; }
@@ -920,7 +1044,7 @@
       .island { animation: none !important; scale: none !important; cursor: default; touch-action: auto; }
       .hero-copy > *, .snapshot { animation: none !important; scale: none !important; translate: none !important; }
       .snapshot { cursor: default; touch-action: auto; }
-      .button, .story-dot::before, .island-label, .island-chevron, .sheet-tile, input[type="range"]::-webkit-slider-thumb { transition-duration: 1ms !important; }
+      .button, .story-dot::before, .island-label, .island-chevron, .sheet-tile, .dossier-chevron, .source-link, input[type="range"]::-webkit-slider-thumb { transition-duration: 1ms !important; }
       .hero-scroll { height: auto; }
       .hero { position: relative; height: auto; }
       .hero-aurora, .hero-copy, .snapshot, .feature, .story-veil, .chip, .story-ghost, .materials-band, .tile-thin, .tile-regular, .tile-thick { transform: none !important; opacity: 1 !important; transition: opacity 180ms ease !important; }
@@ -935,12 +1059,12 @@
 
     @media (prefers-reduced-transparency: reduce) {
       .island { background: #131316; }
-      .sheet, .snapshot, .features, .button.secondary, .story-fact, .tile, .lab-shell, .lab-puck, .chip, .sheet-tile { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
+      .sheet, .snapshot, .features, .button.secondary, .story-fact, .dossier, .tile, .lab-shell, .lab-puck, .chip, .sheet-tile { backdrop-filter: none; -webkit-backdrop-filter: none; background: #ffffff; }
       .sheet-backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
     }
 
     @media (prefers-contrast: more) {
-      .sheet, .snapshot, .story-fact, .tile, .lab-shell, .sheet-tile { border: 2px solid var(--ink); }
+      .sheet, .snapshot, .story-fact, .dossier, .tile, .lab-shell, .sheet-tile { border: 2px solid var(--ink); }
       .lede, .snapshot > p, .feature p, .story-card p, .tile p, .lab-shell > p { color: #3a3a3c; }
       h1, .story-card h2 { background: none; color: var(--ink); }
       .story-ghost { display: none; }
@@ -968,6 +1092,7 @@
     <div class="sheet-grid">
       <button class="sheet-tile" type="button" data-goto="#top"><i class="ph ph-house" aria-hidden="true"></i><span>回到顶部</span></button>
       <button class="sheet-tile" type="button" data-goto="#principles"><i class="ph ph-compass" aria-hidden="true"></i><span>知识地图</span></button>
+      <button class="sheet-tile" type="button" data-goto="#deep-dive"><i class="ph ph-book-open-text" aria-hidden="true"></i><span>深潜档案</span></button>
       <button class="sheet-tile" type="button" data-goto="#materials"><i class="ph ph-stack" aria-hidden="true"></i><span>材质图鉴</span></button>
       <button class="sheet-tile" type="button" data-goto="#lab"><i class="ph ph-flask" aria-hidden="true"></i><span>调参台</span></button>
       <button class="sheet-tile" type="button" data-goto="#reference"><i class="ph ph-notebook" aria-hidden="true"></i><span>正在做</span></button>
@@ -1065,6 +1190,152 @@
       </div>
     </section>
 
+    <section class="deep-dive" id="deep-dive" aria-labelledby="deep-dive-title">
+      <div class="deep-inner">
+        <header class="deep-head">
+          <div>
+            <p class="eyebrow">深潜档案 Knowledge Dossiers</p>
+            <h2 id="deep-dive-title">五个房间，<br>各自再推开一扇门。</h2>
+            <p>这里不只给结论，也把概念的来路、计算的方法和容易误解的边界放在一起。每份档案都连接到原始论文、官方文档或原著文本。</p>
+          </div>
+          <button class="button secondary" type="button" id="toggle-dossiers" aria-expanded="false">展开全部 <i class="ph ph-arrows-out-line-vertical" aria-hidden="true"></i></button>
+        </header>
+
+        <div class="dossier-grid">
+          <details class="dossier" open>
+            <summary class="dossier-summary">
+              <span class="dossier-icon"><i class="ph ph-atom" aria-hidden="true"></i></span>
+              <span>
+                <span class="dossier-kicker">01 · Materials</span>
+                <h3>高熵只是起点，组织才给答案。</h3>
+                <p>从 2004 年的多主元合金，到裂纹尖端逐原子的演化。</p>
+              </span>
+              <span class="dossier-chevron" aria-hidden="true"><i class="ph ph-plus"></i></span>
+            </summary>
+            <div class="dossier-body">
+              <h4>两条同时出现的起跑线</h4>
+              <p>2004 年，Cantor 团队报道了等原子比多组元合金，其中 CoCrFeMnNi 形成单相面心立方固溶体；同年，叶均蔚团队以“多主元元素”提出高熵合金的设计概念。两条路线共同把合金设计从“一种主元素”推向多主元空间。</p>
+              <div class="formula-block"><code>ΔS_mix = −R Σ cᵢ ln cᵢ　；等原子比时 ΔS_mix = R ln N</code></div>
+              <h4>别把“高熵”当成单相保证书</h4>
+              <ul>
+                <li>混合熵有利于固溶体，但混合焓、原子尺寸失配、电子结构和冷却路径也会决定最终相组成。</li>
+                <li>裂纹模拟通常从势函数与晶向开始，依次完成弛豫、开缺口、加载、轨迹输出，再用 OVITO 识别位错、局部结构与裂纹扩展。</li>
+                <li>LAMMPS 的 <code>fix nve</code> 使用 velocity-Verlet：半步更新速度、整步推进位置、计算新力后再完成另一半速度更新。</li>
+              </ul>
+              <div class="source-links">
+                <a class="source-link" href="https://doi.org/10.1016/j.msea.2003.10.257" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Cantor et al. · 2004</a>
+                <a class="source-link" href="https://doi.org/10.1002/adem.200300567" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Yeh et al. · 2004</a>
+                <a class="source-link" href="https://docs.lammps.org/fix_nve.html" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>LAMMPS · fix nve</a>
+              </div>
+            </div>
+          </details>
+
+          <details class="dossier">
+            <summary class="dossier-summary">
+              <span class="dossier-icon"><i class="ph ph-function" aria-hidden="true"></i></span>
+              <span>
+                <span class="dossier-kicker">02 · Mathematics</span>
+                <h3>曲率变成频率，只差一次质量加权。</h3>
+                <p>Hessian、力常数矩阵和声子谱其实在讲同一件事。</p>
+              </span>
+              <span class="dossier-chevron" aria-hidden="true"><i class="ph ph-plus"></i></span>
+            </summary>
+            <div class="dossier-body">
+              <h4>从函数地形到晶格振动</h4>
+              <p>对一般函数，Hessian 的特征向量给出主曲率方向，特征值的正负区分谷底、山顶和鞍点。对晶体，把原子位移的二阶能量变化写成力常数，再做质量加权与空间傅里叶变换，就得到波矢 <code>q</code> 下的动力学矩阵。</p>
+              <div class="formula-block"><code>D(q)e(qν) = ω²(qν)e(qν)　；　v_g(qν) = ∇q ω(qν)</code></div>
+              <ul>
+                <li>对角化动力学矩阵后，特征值是频率平方，特征向量描述每个原子在该振动模式中的方向与相位。</li>
+                <li>出现负的 <code>ω²</code> 时，常写成“虚频”；它可能提示结构沿某个模式不稳定，也可能来自超胞、力常数或收敛精度不足。</li>
+                <li>色散曲线的斜率就是群速度，它把声子谱继续连接到热输运。</li>
+              </ul>
+              <div class="source-links">
+                <a class="source-link" href="https://phonopy.github.io/phonopy/formulation.html" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Phonopy · Formulations</a>
+                <a class="source-link" href="https://phonopy.github.io/phonopy/setting-tags.html" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Phonopy · Dynamical matrix</a>
+              </div>
+            </div>
+          </details>
+
+          <details class="dossier">
+            <summary class="dossier-summary">
+              <span class="dossier-icon"><i class="ph ph-magnet" aria-hidden="true"></i></span>
+              <span>
+                <span class="dossier-kicker">03 · Physics</span>
+                <h3>越近越自由，越远越无法分开。</h3>
+                <p>同一个强相互作用，在不同能标下显出两张相反的脸。</p>
+              </span>
+              <span class="dossier-chevron" aria-hidden="true"><i class="ph ph-plus"></i></span>
+            </summary>
+            <div class="dossier-body">
+              <h4>短程自由与长程禁闭</h4>
+              <p>在很短距离或很高动量转移下，强耦合会减弱，这叫渐近自由；尺度变大后，相互作用增强，夸克与胶子只能以总色荷为零的强子出现。把能量继续注入色场，观测到的不是一颗被拔出的自由夸克，而是新的强子喷注。</p>
+              <ul>
+                <li>介子由夸克—反夸克组成，重子通常由三个夸克组成；两者的净色荷都为零。</li>
+                <li>夸克到可探测强子的转换叫强子化，它发生在微扰 QCD 逐渐失效的低能尺度。</li>
+                <li>重离子碰撞能短暂产生夸克—胶子等离子体；格点 QCD 给出的转变温度约为 150–160 MeV，超过一万亿开尔文。</li>
+              </ul>
+              <div class="source-links">
+                <a class="source-link" href="https://opendata.atlas.cern/docs/documentation/introduction/heavy_ions" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>ATLAS · Heavy-ion physics</a>
+                <a class="source-link" href="https://home.cern/partons-hadrons/" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>CERN · From partons to hadrons</a>
+              </div>
+            </div>
+          </details>
+
+          <details class="dossier">
+            <summary class="dossier-summary">
+              <span class="dossier-icon"><i class="ph ph-shield-check" aria-hidden="true"></i></span>
+              <span>
+                <span class="dossier-kicker">04 · Networks</span>
+                <h3>普通 Tor 电路和 Onion 服务，不是一回事。</h3>
+                <p>一条去公开网站；另一条让客户端和服务都留在网络内部。</p>
+              </span>
+              <span class="dossier-chevron" aria-hidden="true"><i class="ph ph-plus"></i></span>
+            </summary>
+            <div class="dossier-body">
+              <h4>先区分两种路径</h4>
+              <div class="formula-block"><code>公开网站：User → Guard → Middle → Exit → Web</code></div>
+              <p>访问普通网站时，入口守卫知道连接来自谁但不知道最终内容，中继只负责转发，出口看到目的地却通常不知道客户端身份。Onion 服务没有出口节点：服务先建立介绍点并发布签名描述符，客户端选择会合点，双方各走一条三跳电路，在 Tor 内部相遇。</p>
+              <ul>
+                <li>Onion 地址编码服务身份公钥，因此地址本身参与端到端认证。</li>
+                <li>完整的客户端—Onion 服务连接通常包含六个中继：客户端三跳，服务端三跳，会合点处接合。</li>
+                <li>Tor 隐藏路由关系，不承诺消灭所有风险；能同时观察入口与出口流量的强对手仍可能做时间和流量相关分析。</li>
+              </ul>
+              <div class="source-links">
+                <a class="source-link" href="https://community.torproject.org/relay/types-of-relays/" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Tor · Relay types</a>
+                <a class="source-link" href="https://community.torproject.org/onion-services/overview/" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>Tor · Onion Services</a>
+              </div>
+            </div>
+          </details>
+
+          <details class="dossier">
+            <summary class="dossier-summary">
+              <span class="dossier-icon"><i class="ph ph-feather" aria-hidden="true"></i></span>
+              <span>
+                <span class="dossier-kicker">05 · Letters</span>
+                <h3>《野草》不是一条情绪，是一组互相争辩的声音。</h3>
+                <p>23 篇散文诗，把黑暗、自剖、行走与抵抗拆成不同仪器。</p>
+              </span>
+              <span class="dossier-chevron" aria-hidden="true"><i class="ph ph-plus"></i></span>
+            </summary>
+            <div class="dossier-body">
+              <h4>一条可进入的阅读路径</h4>
+              <p>《野草》收录鲁迅写于 1924 至 1926 年的 23 篇散文诗，1927 年结集出版。它不提供单一结论，而是让多个自我在同一文本内部争执：想离开影子的人、执意向前的过客、面对墓碑文字的人，以及在暴力之后仍拒绝遗忘的人。</p>
+              <ul>
+                <li><strong>从“我是谁”进入：</strong>读《影的告别》《墓碣文》，看叙述者如何把自我拆成对话双方。</li>
+                <li><strong>从“往哪里走”进入：</strong>读《过客》，注意目的地并不确定，行动本身却无法停止。</li>
+                <li><strong>从“如何面对公共创伤”进入：</strong>读《淡淡的血痕中》，把私人感受放回 1920 年代的现实压力。</li>
+                <li><strong>最后再读题辞：</strong>野草渺小、并不美，却仍从死亡与废墟中争取生存；这也是全书最凝缩的结构说明。</li>
+              </ul>
+              <div class="source-links">
+                <a class="source-link" href="https://zh.wikisource.org/zh-hans/Category:%E9%87%8E%E8%8D%89" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>维基文库 · 23 篇文本</a>
+                <a class="source-link" href="https://commons.wikimedia.org/wiki/File:NLC416-12jh005574-44523_%E9%87%8E%E8%8D%89.pdf" target="_blank" rel="noopener noreferrer"><i class="ph ph-arrow-square-out"></i>国家图书馆藏本扫描</a>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
     <section class="materials" id="materials" aria-labelledby="materials-title">
       <div class="materials-band" aria-hidden="true"></div>
       <header class="materials-head">
@@ -1152,6 +1423,7 @@
       const storyDots = [...document.querySelectorAll('.story-dot')];
       const storyCounter = document.querySelector('.story-counter span');
       const storyGhost = document.querySelector('.story-ghost');
+      const deepDive = document.querySelector('.deep-dive');
       const materials = document.querySelector('.materials');
       const features = document.querySelector('.features');
       const snapshot = document.querySelector('.snapshot');
@@ -1263,12 +1535,30 @@
       const sections = [
         { el: heroScroll, label: '从原子到文字' },
         { el: story, label: '知识地图' },
+        { el: deepDive, label: '深潜档案' },
         { el: materials, label: '材质图鉴' },
         { el: document.getElementById('lab'), label: '调参台' },
         { el: features, label: '正在做' }
       ];
       let currentSection = -1;
       let peekTimer = 0;
+
+      /* ---- Knowledge dossiers: disclose depth without losing the page rhythm ---- */
+      const dossiers = [...document.querySelectorAll('.dossier')];
+      const dossierToggle = document.getElementById('toggle-dossiers');
+      const syncDossierToggle = () => {
+        const allOpen = dossiers.every((item) => item.open);
+        dossierToggle.setAttribute('aria-expanded', String(allOpen));
+        dossierToggle.childNodes[0].nodeValue = allOpen ? '收起全部 ' : '展开全部 ';
+      };
+
+      dossierToggle.addEventListener('click', () => {
+        const shouldOpen = !dossiers.every((item) => item.open);
+        dossiers.forEach((item) => { item.open = shouldOpen; });
+        syncDossierToggle();
+      });
+      dossiers.forEach((item) => item.addEventListener('toggle', syncDossierToggle));
+      syncDossierToggle();
 
       const updateIsland = () => {
         let idx = 0;
