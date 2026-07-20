@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1f5">
+  <meta name="description" content="格物志主题展厅：概念、实验、人物与历史、资料。">
+  <title>格物志｜主题展厅</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800;900&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <link rel="stylesheet" href="../museum.css">
+</head>
+<body data-topic="networks">
+  <a class="skip-link" href="#chapters">跳到主题分支</a>
+  <div class="progress" aria-hidden="true"></div>
+  <header class="topbar" aria-label="主导航">
+    <a class="brand" href="../index.html" aria-label="格物志首页"><span class="brand-mark"><i class="ph ph-atom"></i></span><span>格物志</span></a>
+    <span class="topbar-rule" aria-hidden="true"></span>
+    <div class="breadcrumb"><a href="../index.html">知识地图</a><i class="ph ph-caret-right"></i><strong data-topic-name>主题</strong></div>
+    <nav class="topnav" aria-label="快捷入口">
+      <a href="#chapters">分支目录</a>
+      <a href="#topic-switcher">切换展厅</a>
+      <a href="../story.html">原来的长卷</a>
+      <button class="nav-search" type="button" data-open-search aria-label="搜索知识地图"><i class="ph ph-magnifying-glass"></i></button>
+      <button class="nav-search menu-button" type="button" aria-label="浏览主题"><i class="ph ph-list"></i></button>
+    </nav>
+  </header>
+  <main>
+    <section class="topic-hero" aria-labelledby="topic-title">
+      <div class="topic-hero-inner">
+        <div class="topic-copy">
+          <span class="topic-number"><span data-topic-number>00</span> · <span data-topic-en>Topic</span></span>
+          <h1 id="topic-title" data-topic-name>主题</h1>
+          <p data-topic-intro></p>
+          <div class="hero-actions"><a class="button primary" href="#chapters">选择一条路径 <i class="ph ph-arrow-down"></i></a><a class="button" href="../index.html">返回五扇门</a></div>
+        </div>
+        <aside class="topic-stat"><small>Curator's Note</small><strong data-topic-note></strong><span>四条路径 · 16 个知识切片 · 持续扩展</span></aside>
+      </div>
+    </section>
+    <section class="topic-main" id="chapters" aria-label="主题分支">
+      <div class="chapter-shell">
+        <aside class="chapter-nav">
+          <p class="chapter-nav-label">Choose a branch</p>
+          <div class="chapter-tabs" id="chapter-tabs" role="tablist" aria-label="网络主题分支"></div>
+          <p class="chapter-index">点击分支会更新地址栏中的锚点，因此可以直接收藏或分享当前阅读位置。</p>
+        </aside>
+        <article class="chapter-panel" id="chapter-panel" role="tabpanel" aria-live="polite"></article>
+      </div>
+    </section>
+    <section class="topic-switcher" id="topic-switcher" aria-labelledby="switcher-title">
+      <div class="topic-switcher-inner"><p class="eyebrow">Continue the Route</p><h2 id="switcher-title">换一扇门，继续比较。</h2><nav class="topic-switcher-list" id="topic-switcher-list" aria-label="切换主题"></nav></div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>格物志 · <span data-topic-name>主题</span>展厅</span><span><a href="../index.html">返回知识地图</a> · <a href="#chapters">回到分支</a></span></div></footer>
+  <div class="search-dialog" id="search-dialog" aria-hidden="true" role="dialog" aria-modal="true" aria-label="搜索知识地图">
+    <div class="search-card"><div class="search-input-wrap"><i class="ph ph-magnifying-glass"></i><input class="search-input" id="search-input" type="search" placeholder="搜索主题或分支…" autocomplete="off"><button class="search-close" type="button" data-close-search aria-label="关闭搜索"><i class="ph ph-x"></i></button></div><div class="search-results" id="search-results"></div></div>
+  </div>
+  <script src="../museum.js"></script>
+</body>
+</html>
