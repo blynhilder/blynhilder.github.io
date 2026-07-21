@@ -72,6 +72,57 @@
       </div>
     </section>
 
+    <section class="section glass-atlas" id="glass-atlas" aria-labelledby="glass-atlas-title">
+      <div class="section-inner">
+        <header class="section-head reveal">
+          <div><p class="eyebrow">Liquid Glass · Material Atlas</p><h2 id="glass-atlas-title">玻璃不是滤镜，<br>而是一套层级。</h2></div>
+          <p>同一张背景之上，模糊、透明度和阴影共同决定一块界面离你有多近。越大的表面越需要更厚的材质；越轻的工具越应该让背景保持可辨。</p>
+        </header>
+        <div class="glass-stage reveal" aria-label="三种玻璃厚度示例">
+          <article class="glass-sample glass-thin"><span>01 · Ultra-thin</span><h3>超薄玻璃</h3><code>blur(8px)</code><p>保留背景细节，适合徽标、悬浮提示和轻量工具。</p></article>
+          <article class="glass-sample glass-regular"><span>02 · Regular</span><h3>常规玻璃</h3><code>blur(20px)</code><p>背景只留下色彩印象，适合导航、菜单与内容卡片。</p></article>
+          <article class="glass-sample glass-thick"><span>03 · Thick</span><h3>厚玻璃</h3><code>blur(34px)</code><p>更白、更稳、更深，用于需要压住页面的控制中心与模态面板。</p></article>
+        </div>
+        <p class="glass-principle reveal"><i class="ph ph-warning-circle"></i><strong>叠层原则：</strong>浅色玻璃不要无差别地叠在浅色玻璃上；上层必须更厚、更白，或由实色把信息托住。</p>
+      </div>
+    </section>
+
+    <section class="section motion-lab" id="motion-lab" aria-labelledby="motion-lab-title">
+      <div class="section-inner">
+        <div class="motion-lab-panel reveal">
+          <div class="motion-lab-copy">
+            <p class="eyebrow">Physics Bench · Spring Lab</p>
+            <h2 id="motion-lab-title">亲手拧一拧弹簧。</h2>
+            <p>真正的苹果式动效不是固定时长，而是一个会保留速度的系统。调低阻尼，它会过冲；缩短响应，它会更快到达目标。界面和晶格振动，在这里共享同一类方程。</p>
+            <code class="spring-equation">a = −ω²(x−x₀) − 2ζωv</code>
+          </div>
+          <div class="spring-controls">
+            <label><span>阻尼比 Damping <output id="damping-output">0.80</output></span><input id="damping-range" aria-label="阻尼比 Damping" type="range" min="0.25" max="1.2" value="0.8" step="0.05"></label>
+            <label><span>响应 Response <output id="response-output">0.40s</output></span><input id="response-range" aria-label="响应 Response" type="range" min="0.2" max="0.9" value="0.4" step="0.05"></label>
+            <button class="button gold spring-release" id="spring-release" type="button">释放 <i class="ph ph-play"></i></button>
+          </div>
+          <div class="spring-track" aria-label="弹簧响应演示"><span class="spring-puck" id="spring-puck"><i class="ph ph-cube-transparent"></i></span></div>
+          <p class="spring-readout" aria-live="polite">上一次运行：<strong id="spring-status">等待释放</strong><span>过冲 <em id="spring-overshoot">—</em></span><span>稳定用时 <em id="spring-settle">—</em></span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section deep-dives" id="deep-dives" aria-labelledby="deep-dives-title">
+      <div class="section-inner">
+        <header class="section-head reveal">
+          <div><p class="eyebrow">Long Reads · Five Dossiers</p><h2 id="deep-dives-title">五篇长读，<br>把一个问题追到底。</h2></div>
+          <p>四条分支适合快速建立地图，专题长读则保留推导、数字、工作流与上下文。每篇文章都有相邻房间导航，也支持键盘左右切换。</p>
+        </header>
+        <div class="dossier-grid">
+          <a class="dossier dossier-materials reveal" href="notes/materials.html"><span>01 · Materials</span><h3>高熵合金，与一条裂纹的选择。</h3><p>从构型熵到裂纹尖端，再到 LAMMPS 与 OVITO 的原子模拟路线。</p><i class="ph ph-arrow-up-right"></i></a>
+          <a class="dossier dossier-math reveal" href="notes/math.html"><span>02 · Mathematics</span><h3>从 Hessian，到晶格里的声子。</h3><p>把二阶导数、特征值与晶体振动放在同一条推导链里。</p><i class="ph ph-arrow-up-right"></i></a>
+          <a class="dossier dossier-physics reveal" href="notes/physics.html"><span>03 · Physics</span><h3>夸克从不单独出场。</h3><p>沿着 QCD、色禁闭与强相互作用，理解“越拉越紧”的力。</p><i class="ph ph-arrow-up-right"></i></a>
+          <a class="dossier dossier-networks reveal" href="notes/networks.html"><span>04 · Networks</span><h3>洋葱有三层皮。</h3><p>一条 Tor 电路怎样拆开身份与目的地，以及匿名仍然怕什么。</p><i class="ph ph-arrow-up-right"></i></a>
+          <a class="dossier dossier-letters reveal" href="notes/letters.html"><span>05 · Letters</span><h3>《野草》：地火与一台仪器。</h3><p>从鲁迅的意象出发，观察文字如何测量希望与虚妄的电位差。</p><i class="ph ph-arrow-up-right"></i></a>
+        </div>
+      </div>
+    </section>
+
     <section class="section field-notes" id="notes" aria-labelledby="notes-title">
       <div class="section-inner">
         <header class="section-head reveal">

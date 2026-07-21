@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Tor 的三跳电路、逐层加密、各节点的知识边界,以及流量关联这个根本软肋。">
+  <title>洋葱路由的信任拼图 — 格物志</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <link rel="stylesheet" href="../assets/notes.css">
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <nav class="island" aria-label="面包屑导航">
+    <a class="island-back" href="../index.html" aria-label="返回格物志首页"><i class="ph ph-arrow-left" aria-hidden="true"></i></a>
+    <span class="island-crumb">
+      <a class="home-word" href="../index.html">格物志</a>
+      <span class="sep home-word">/</span>
+      <a href="../index.html#routes">知识地图</a>
+      <span class="sep">/</span>
+      <span class="here">网络</span>
+    </span>
+  </nav>
+
+  <div class="note-aurora" aria-hidden="true"></div>
+
+  <main>
+    <article class="note">
+      <p class="note-eyebrow">04 · 网络 Networks</p>
+      <h1>匿名不靠藏，靠拆。</h1>
+      <p class="note-lede">大多数人以为匿名是把自己藏起来。Tor 的思路相反：把"你是谁"和"你去哪"这两条信息拆开,拆到网络上没有任何一个位置能同时看到它们。这不是遮掩,是知识的外科手术。</p>
+      <h2>三跳与三层皮</h2>
+      <p>客户端从目录服务器拿到全网中继列表,挑三个节点搭一条电路：<strong>入口（Guard）→ 中间（Middle）→ 出口（Exit）</strong>。发消息前,客户端用三个节点的密钥从里到外裹三层加密——像洋葱。数据每经过一跳,该节点剥掉属于自己的那一层,看到的只有"下一跳是谁"。于是知识被精确地配给：入口知道你的 IP,但看到的内容还裹着两层;出口把最后一层剥开、替你访问目标,却不知道请求最初来自谁;中间节点最惨,两头都不认识,纯粹负责把水搅浑。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-key" aria-hidden="true"></i>每个节点知道什么</h3>
+        <ul>
+          <li>入口节点：你的真实 IP ✓ / 你的目的地 ✗</li>
+          <li>中间节点：两头都不知道,只认识相邻的两跳</li>
+          <li>出口节点：你的目的地 ✓ / 你的真实 IP ✗</li>
+          <li>电路默认约十分钟一换;Guard 则长期固定——频繁换入口反而增大撞上恶意节点的累计概率</li>
+        </ul>
+      </div>
+      <h2>看不见的门与桥</h2>
+      <p>公开的中继列表任何人都能下载——审查者也能,照单封锁即可。于是有了不进公开目录的<strong>网桥（Bridge）</strong>,以及给流量披上伪装的可插拔传输层：obfs4 把 Tor 流量揉成一团无特征的随机字节,meek 之类则把流量藏进大型云服务的 HTTPS 里,让封锁的代价变成"连它们一起封"。这是一场特征识别与特征擦除的持久军备竞赛,思路上和你见过的各种代理伪装协议一脉相承。</p>
+      <h2>诚实的边界</h2>
+      <p>Tor 的威胁模型写得很坦白：它防的是"网络中某一个位置的观察者",防不了"同时掐住两头的观察者"。如果对手既能看到你到入口的流量,又能看到出口到目标的流量,不需要破解任何加密——对一对时间戳、比一比流量形状,<strong>流量关联</strong>就能把两端缝回去。此外出口之后的明文（若目标不是 HTTPS）、浏览器指纹、你自己登录的账号,都在洋葱的保护范围之外。知道一件工具不保护什么,和知道它保护什么同样重要。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-detective" aria-hidden="true"></i>设计哲学</h3>
+        <p>Tor 假设个别节点可以是恶意的,系统整体仍然成立——信任不押在任何单点上,而是摊薄在三个互不相识的陌生人身上。这和高熵合金把稳定性押在"混乱"上,几乎是同一个赌注。</p>
+      </div>
+
+      <div class="aside-card sources-card">
+        <h3><i class="ph ph-books" aria-hidden="true"></i>协议资料 Sources</h3>
+        <div class="source-list"><a href="https://spec.torproject.org/intro/index.html" target="_blank" rel="noreferrer">Tor Specifications · A short introduction</a><a href="https://community.torproject.org/onion-services/overview/" target="_blank" rel="noreferrer">Tor Project · Onion services overview</a></div>
+      </div>
+
+      <nav class="rooms" aria-label="相邻的房间">
+        <a class="room prev" href="physics.html"><span><i class="ph ph-arrow-left" aria-hidden="true"></i> 上一间</span><strong>03 · 色禁闭：拉不开的力</strong></a>
+        <a class="room next" href="letters.html"><span>下一间 <i class="ph ph-arrow-right" aria-hidden="true"></i></span><strong>05 · 《野草》：地火与仪器</strong></a>
+        <a class="room hub" href="../index.html#routes"><i class="ph ph-compass" aria-hidden="true"></i> 回到知识地图</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer>
+    <span>格物志 · 网络 Networks</span>
+    <span>键盘 ← → 可在房间之间移动</span>
+  </footer>
+
+  <script src="../assets/notes.js"></script>
+</body>
+</html>

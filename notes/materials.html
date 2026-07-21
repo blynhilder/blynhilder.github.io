@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="高熵合金的四大效应,裂纹尖端的原子物理,以及用 LAMMPS 做分子动力学模拟的工作流。">
+  <title>高熵合金与裂纹尖端 — 格物志</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <link rel="stylesheet" href="../assets/notes.css">
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <nav class="island" aria-label="面包屑导航">
+    <a class="island-back" href="../index.html" aria-label="返回格物志首页"><i class="ph ph-arrow-left" aria-hidden="true"></i></a>
+    <span class="island-crumb">
+      <a class="home-word" href="../index.html">格物志</a>
+      <span class="sep home-word">/</span>
+      <a href="../index.html#routes">知识地图</a>
+      <span class="sep">/</span>
+      <span class="here">材料</span>
+    </span>
+  </nav>
+
+  <div class="note-aurora" aria-hidden="true"></div>
+
+  <main>
+    <article class="note">
+      <p class="note-eyebrow">01 · 材料 Materials</p>
+      <h1>高熵合金，与一条裂纹的选择。</h1>
+      <p class="note-lede">传统冶金术是"一主多辅"的君主制：一种基体金属加少量合金元素。2004 年 Cantor 与 Yeh 各自发现，把四五种元素等原子比地混在一起，得到的不是一锅金属间化合物的杂烩，而是出奇稳定的单相固溶体。混乱本身成了稳定的来源——这就是高熵合金（HEA）。</p>
+      <h2>四大效应</h2>
+      <p>教科书把 HEA 的特殊性归纳为四条。<strong>高熵效应</strong>：构型熵 <code>ΔS = R ln N</code> 随组元数增长，压低了吉布斯自由能里 −TΔS 那一项，让无序固溶体在热力学上竞争过金属间化合物。<strong>晶格畸变</strong>：五种尺寸不一的原子挤在同一套格点上，处处是应力，位错滑过去要付出更高的代价——固溶强化被推到极致。<strong>迟滞扩散</strong>：每个原子的近邻环境都不一样，空位迁移的能量地形坑坑洼洼，扩散慢下来，高温组织更稳。<strong>鸡尾酒效应</strong>：性能不是各组元的加权平均，元素之间会调出意料之外的味道。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-calculator" aria-hidden="true"></i>算一笔熵账</h3>
+        <p>等原子比五元合金的理想构型熵：</p>
+        <span class="formula">ΔS_conf = R ln 5 ≈ 1.61 R ≈ 13.4 J·mol⁻¹·K⁻¹</span>
+        <p>作为对照，多数传统合金不到 0.7R。1500 K 下 −TΔS 能贡献约 −20 kJ/mol——足够改写相图的判决。</p>
+      </div>
+      <h2>裂纹尖端：几百个原子的法庭</h2>
+      <p>一块金属的命运常常在裂纹尖端那几百个原子之间裁决。连续介质力学告诉你尖端附近应力按 <code>K/√(2πr)</code> 发散，但 r 走到原子尺度时,连续假设失效——接下来是原子的事：要么尖端发射位错、钝化、吃掉能量（韧），要么原子键逐个崩断、解理扩展（脆）。Rice 的理论把这场竞争写成两个能量的比较：不稳定层错能 γ_us 对表面能 γ_s。HEA 的迷人之处在于,局部成分涨落让每一处尖端面对的都是不同的判据——裂纹在多主元晶格里走的路,没人能用平均场猜出来。</p>
+      <p>这正是要做原子模拟的原因：<strong>平均描述失效的地方，就是逐原子计算开始的地方。</strong></p>
+      <h2>我的工作流</h2>
+      <p>分子动力学把每个原子当牛顿质点,用经验势函数（EAM/MEAM 这一族）算受力,然后积分运动方程。LAMMPS 负责算,OVITO 负责看——共近邻分析（CNA）把 FCC、BCC、HCP 原子染成不同颜色,位错抽取算法（DXA）能把位错线从原子堆里描出来。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-list-checks" aria-hidden="true"></i>路线图 Roadmap</h3>
+        <ul>
+          <li>WSL2 里装好 LAMMPS,跑通官方 example（in.melt 起手）</li>
+          <li>单晶铜的预制裂纹拉伸,OVITO 逐帧看尖端位错发射</li>
+          <li>换上 CoCrFeMnNi（Cantor 合金）的机器学习势或 EAM 势</li>
+          <li>对比不同成分涨落下的裂纹路径与韧脆转变</li>
+        </ul>
+      </div>
+
+      <div class="aside-card sources-card">
+        <h3><i class="ph ph-books" aria-hidden="true"></i>原始资料 Sources</h3>
+        <div class="source-list"><a href="https://doi.org/10.1002/adem.200300567" target="_blank" rel="noreferrer">Yeh et al. · High-entropy alloys (2004)</a><a href="https://doi.org/10.1016/j.msea.2003.10.257" target="_blank" rel="noreferrer">Cantor et al. · Equiatomic multicomponent alloys</a><a href="https://docs.lammps.org/" target="_blank" rel="noreferrer">LAMMPS Documentation</a><a href="https://www.ovito.org/docs/current/" target="_blank" rel="noreferrer">OVITO Documentation</a></div>
+      </div>
+
+      <nav class="rooms" aria-label="相邻的房间">
+        <a class="room prev" href="letters.html"><span><i class="ph ph-arrow-left" aria-hidden="true"></i> 上一间</span><strong>05 · 《野草》：地火与仪器</strong></a>
+        <a class="room next" href="math.html"><span>下一间 <i class="ph ph-arrow-right" aria-hidden="true"></i></span><strong>02 · 从 Hessian 到声子谱</strong></a>
+        <a class="room hub" href="../index.html#routes"><i class="ph ph-compass" aria-hidden="true"></i> 回到知识地图</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer>
+    <span>格物志 · 材料 Materials</span>
+    <span>键盘 ← → 可在房间之间移动</span>
+  </footer>
+
+  <script src="../assets/notes.js"></script>
+</body>
+</html>

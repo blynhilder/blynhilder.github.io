@@ -64,6 +64,22 @@ const TOPIC_PATHS = {
   letters: "letters.html"
 };
 
+const NOTE_PATHS = {
+  materials: "materials.html",
+  mathematics: "math.html",
+  physics: "physics.html",
+  networks: "networks.html",
+  letters: "letters.html"
+};
+
+const NOTE_TITLES = {
+  materials: "高熵合金，与一条裂纹的选择。",
+  mathematics: "从 Hessian，到晶格里的声子。",
+  physics: "夸克从不单独出场。",
+  networks: "洋葱有三层皮。",
+  letters: "《野草》：地火与一台仪器。"
+};
+
 const BRANCH_ICONS = {
   concepts: "ph-lightbulb-filament",
   experiments: "ph-flask",
@@ -73,6 +89,106 @@ const BRANCH_ICONS = {
 
 function currentBase() {
   return document.body.dataset.topic ? "" : "topics/";
+}
+
+function setupLiquidIsland() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  const topicKey = document.body.dataset.topic;
+  const isTopic = Boolean(topicKey && TOPICS[topicKey]);
+  const root = isTopic ? "../" : "";
+  const current = isTopic ? TOPICS[topicKey].name : "五展厅";
+  const triggerId = "liquid-island-trigger";
+  const sheetId = "liquid-control-center";
+
+  topbar.classList.add("liquid-island");
+  topbar.innerHTML = `<button class="island-trigger" id="${triggerId}" type="button" aria-expanded="false" aria-controls="${sheetId}" aria-label="打开液态玻璃控制中心"><span class="island-dot" aria-hidden="true"></span><span class="island-brand">格物志</span><span class="island-current" id="island-current">${current}</span><span class="island-chevron" aria-hidden="true"><i class="ph ph-caret-down"></i></span></button>`;
+
+  const actions = isTopic ? `
+    <a class="liquid-action" href="${root}index.html" data-sheet-close><i class="ph ph-house"></i><span>返回主页</span></a>
+    <a class="liquid-action" href="#chapters" data-sheet-close><i class="ph ph-compass"></i><span>主题分支</span></a>
+    <a class="liquid-action" href="${root}notes/${NOTE_PATHS[topicKey]}" data-sheet-close><i class="ph ph-book-open-text"></i><span>专题长读</span></a>
+    <a class="liquid-action" href="#topic-switcher" data-sheet-close><i class="ph ph-squares-four"></i><span>切换展厅</span></a>
+    <a class="liquid-action" href="${root}story.html" data-sheet-close><i class="ph ph-scroll"></i><span>滚动长卷</span></a>
+    <button class="liquid-action" type="button" data-open-search data-sheet-close><i class="ph ph-magnifying-glass"></i><span>搜索知识</span></button>` : `
+    <a class="liquid-action" href="#routes" data-sheet-close><i class="ph ph-door-open"></i><span>五大展厅</span></a>
+    <a class="liquid-action" href="#glass-atlas" data-sheet-close><i class="ph ph-stack"></i><span>材质图鉴</span></a>
+    <a class="liquid-action" href="#motion-lab" data-sheet-close><i class="ph ph-wave-sine"></i><span>弹簧实验</span></a>
+    <a class="liquid-action" href="#deep-dives" data-sheet-close><i class="ph ph-book-open-text"></i><span>专题长读</span></a>
+    <a class="liquid-action" href="story.html" data-sheet-close><i class="ph ph-scroll"></i><span>滚动长卷</span></a>
+    <button class="liquid-action" type="button" data-open-search data-sheet-close><i class="ph ph-magnifying-glass"></i><span>搜索知识</span></button>`;
+
+  document.body.insertAdjacentHTML("beforeend", `<div class="liquid-sheet-backdrop" id="liquid-sheet-backdrop" aria-hidden="true"></div><section class="liquid-sheet" id="${sheetId}" role="dialog" aria-modal="true" aria-labelledby="liquid-sheet-title" aria-hidden="true" inert><div class="liquid-sheet-head" data-drag-surface><h2 id="liquid-sheet-title">控制中心</h2><span>Liquid Glass Navigation</span></div><div class="liquid-sheet-grid">${actions}</div><p class="liquid-sheet-hint">点击岛屿或空白处收起 · 也可以向上轻甩面板</p></section>`);
+
+  const trigger = document.querySelector(`#${triggerId}`);
+  const sheet = document.querySelector(`#${sheetId}`);
+  const backdrop = document.querySelector("#liquid-sheet-backdrop");
+  let lastFocus = null;
+  let dragStartY = 0;
+  let dragLastY = 0;
+  let dragLastTime = 0;
+  let dragging = false;
+
+  const setOpen = open => {
+    document.body.classList.toggle("island-open", open);
+    trigger.setAttribute("aria-expanded", String(open));
+    trigger.setAttribute("aria-label", open ? "收起液态玻璃控制中心" : "打开液态玻璃控制中心");
+    sheet.setAttribute("aria-hidden", String(!open));
+    backdrop.setAttribute("aria-hidden", String(!open));
+    sheet.inert = !open;
+    sheet.style.transform = "";
+    sheet.style.opacity = "";
+    if (open) {
+      lastFocus = document.activeElement;
+      setTimeout(() => sheet.querySelector(".liquid-action")?.focus(), 180);
+    } else if (lastFocus instanceof HTMLElement && !lastFocus.matches("[data-sheet-close]")) {
+      lastFocus.focus();
+    }
+  };
+
+  trigger.addEventListener("click", () => setOpen(!document.body.classList.contains("island-open")));
+  backdrop.addEventListener("click", () => setOpen(false));
+  sheet.querySelectorAll("[data-sheet-close]").forEach(action => action.addEventListener("click", () => setOpen(false)));
+  addEventListener("keydown", event => { if (event.key === "Escape" && document.body.classList.contains("island-open")) setOpen(false); });
+
+  sheet.addEventListener("pointerdown", event => {
+    if (!event.target.closest("[data-drag-surface]")) return;
+    dragging = true;
+    dragStartY = dragLastY = event.clientY;
+    dragLastTime = performance.now();
+    sheet.setPointerCapture?.(event.pointerId);
+  });
+  sheet.addEventListener("pointermove", event => {
+    if (!dragging) return;
+    const delta = Math.min(0, event.clientY - dragStartY);
+    sheet.style.transform = `translate(-50%, ${delta}px) scale(${1 + delta / 1800})`;
+    sheet.style.opacity = String(Math.max(.42, 1 + delta / 220));
+    dragLastY = event.clientY;
+    dragLastTime = performance.now();
+  });
+  const finishDrag = event => {
+    if (!dragging) return;
+    const delta = event.clientY - dragStartY;
+    const elapsed = Math.max(16, performance.now() - dragLastTime);
+    const velocity = (event.clientY - dragLastY) / elapsed;
+    dragging = false;
+    if (delta < -64 || velocity < -.45) setOpen(false);
+    else { sheet.style.transform = ""; sheet.style.opacity = ""; }
+  };
+  sheet.addEventListener("pointerup", finishDrag);
+  sheet.addEventListener("pointercancel", finishDrag);
+
+  if (!isTopic) {
+    const labels = [["routes", "五展厅"], ["glass-atlas", "材质图鉴"], ["motion-lab", "调参台"], ["deep-dives", "专题长读"], ["notes", "今日切片"]];
+    let ticking = false;
+    const updateLabel = () => {
+      let label = "五展厅";
+      labels.forEach(([id, name]) => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 170) label = name; });
+      document.querySelector("#island-current").textContent = label;
+      ticking = false;
+    };
+    addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(updateLabel); } }, { passive: true });
+  }
 }
 
 function updateProgress() {
@@ -115,9 +231,11 @@ function setupSearch() {
   const input = document.querySelector("#search-input");
   const results = document.querySelector("#search-results");
   if (!dialog || !input || !results) return;
+  const noteRoot = document.body.dataset.topic ? "../notes/" : "notes/";
   const entries = Object.entries(TOPICS).flatMap(([key, topic]) => [
     { label: topic.name, meta: topic.en, href: `${currentBase()}${TOPIC_PATHS[key]}` },
-    ...Object.entries(topic.branches).map(([branchKey, branch]) => ({ label: `${topic.name} · ${branch.label}`, meta: branch.title, href: `${currentBase()}${TOPIC_PATHS[key]}#${branchKey}` }))
+    ...Object.entries(topic.branches).map(([branchKey, branch]) => ({ label: `${topic.name} · ${branch.label}`, meta: branch.title, href: `${currentBase()}${TOPIC_PATHS[key]}#${branchKey}` })),
+    { label: `${topic.name} · 专题长读`, meta: NOTE_TITLES[key], href: `${noteRoot}${NOTE_PATHS[key]}` }
   ]);
   const render = value => {
     const query = value.trim().toLowerCase();
@@ -178,7 +296,7 @@ function renderTopic() {
       tab.tabIndex = selected ? 0 : -1;
     });
     panel.setAttribute("aria-labelledby", `chapter-tab-${keyName}`);
-    panel.innerHTML = `<div class="chapter-kicker">${branch.kicker}</div><h2>${branch.title}</h2><p class="chapter-deck">${branch.deck}</p><div class="chapter-rule"></div><div class="fact-grid">${branch.facts.map(fact => `<article class="fact"><i class="ph ${fact[0]}"></i><h3>${fact[1]}</h3><p>${fact[2]}</p></article>`).join("")}</div><blockquote class="chapter-quote">${branch.quote}</blockquote><div class="source-bar"><span>继续阅读</span>${branch.sources.map(source => `<a class="source-link" href="${source[1]}" target="_blank" rel="noreferrer">${source[0]} <i class="ph ph-arrow-up-right"></i></a>`).join("")}</div>`;
+    panel.innerHTML = `<div class="chapter-kicker">${branch.kicker}</div><h2>${branch.title}</h2><p class="chapter-deck">${branch.deck}</p><div class="chapter-rule"></div><div class="fact-grid">${branch.facts.map(fact => `<article class="fact"><i class="ph ${fact[0]}"></i><h3>${fact[1]}</h3><p>${fact[2]}</p></article>`).join("")}</div><blockquote class="chapter-quote">${branch.quote}</blockquote><div class="source-bar"><span>继续阅读</span>${branch.sources.map(source => `<a class="source-link" href="${source[1]}" target="_blank" rel="noreferrer">${source[0]} <i class="ph ph-arrow-up-right"></i></a>`).join("")}</div><a class="deep-dive-cta" href="../notes/${NOTE_PATHS[key]}"><i class="ph ph-book-open-text"></i><span><strong>进入 ${topic.name} 专题长读</strong><span>${NOTE_TITLES[key]}</span></span><i class="ph ph-arrow-up-right"></i></a>`;
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
       panel.animate([{ opacity: .25, transform: "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 460, easing: "cubic-bezier(.22,1,.36,1)" });
     }
@@ -217,11 +335,82 @@ function setupMobileMenu() {
   });
 }
 
+function setupSpringLab() {
+  const damping = document.querySelector("#damping-range");
+  const response = document.querySelector("#response-range");
+  const release = document.querySelector("#spring-release");
+  const puck = document.querySelector("#spring-puck");
+  const track = document.querySelector(".spring-track");
+  if (!damping || !response || !release || !puck || !track) return;
+  const dampingOut = document.querySelector("#damping-output");
+  const responseOut = document.querySelector("#response-output");
+  const status = document.querySelector("#spring-status");
+  const overshootOut = document.querySelector("#spring-overshoot");
+  const settleOut = document.querySelector("#spring-settle");
+  let frame = 0;
+
+  const updateOutputs = () => {
+    dampingOut.value = Number(damping.value).toFixed(2);
+    responseOut.value = `${Number(response.value).toFixed(2)}s`;
+  };
+  damping.addEventListener("input", updateOutputs);
+  response.addEventListener("input", updateOutputs);
+  updateOutputs();
+
+  release.addEventListener("click", () => {
+    cancelAnimationFrame(frame);
+    const zeta = Number(damping.value);
+    const duration = Number(response.value);
+    const target = Math.max(0, track.clientWidth - puck.offsetWidth - 36);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      puck.style.transform = `translateX(${target}px)`;
+      status.textContent = "已到达";
+      overshootOut.textContent = "0px";
+      settleOut.textContent = "即时";
+      return;
+    }
+    let x = 0;
+    let velocity = 0;
+    let last = performance.now();
+    let started = last;
+    let maxX = 0;
+    let stableSince = 0;
+    const omega = 4.6 / duration;
+    status.textContent = "运动中";
+    overshootOut.textContent = "计算中";
+    settleOut.textContent = "计算中";
+    puck.style.transform = "translateX(0)";
+
+    const step = now => {
+      const dt = Math.min(.032, (now - last) / 1000);
+      last = now;
+      const acceleration = -omega * omega * (x - target) - 2 * zeta * omega * velocity;
+      velocity += acceleration * dt;
+      x += velocity * dt;
+      maxX = Math.max(maxX, x);
+      puck.style.transform = `translateX(${x.toFixed(2)}px)`;
+      const settled = Math.abs(x - target) < .7 && Math.abs(velocity) < 4;
+      stableSince = settled ? (stableSince || now) : 0;
+      if ((stableSince && now - stableSince > 220) || now - started > 5200) {
+        puck.style.transform = `translateX(${target}px)`;
+        status.textContent = "已稳定";
+        overshootOut.textContent = `${Math.max(0, maxX - target).toFixed(1)}px`;
+        settleOut.textContent = `${((now - started) / 1000).toFixed(2)}s`;
+        return;
+      }
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+  });
+}
+
 addEventListener("scroll", updateProgress, { passive: true });
 updateProgress();
+setupLiquidIsland();
 setupPointerLight();
 setupReveals();
 setupSearch();
 setupPortals();
 renderTopic();
 setupMobileMenu();
+setupSpringLab();

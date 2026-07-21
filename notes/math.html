@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="二阶偏导矩阵如何判定极值点的形状,以及同一个矩阵如何在晶格动力学里变成声子。">
+  <title>从 Hessian 到声子谱 — 格物志</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <link rel="stylesheet" href="../assets/notes.css">
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <nav class="island" aria-label="面包屑导航">
+    <a class="island-back" href="../index.html" aria-label="返回格物志首页"><i class="ph ph-arrow-left" aria-hidden="true"></i></a>
+    <span class="island-crumb">
+      <a class="home-word" href="../index.html">格物志</a>
+      <span class="sep home-word">/</span>
+      <a href="../index.html#routes">知识地图</a>
+      <span class="sep">/</span>
+      <span class="here">数学</span>
+    </span>
+  </nav>
+
+  <div class="note-aurora" aria-hidden="true"></div>
+
+  <main>
+    <article class="note">
+      <p class="note-eyebrow">02 · 数学 Mathematics</p>
+      <h1>一个矩阵的双重生活。</h1>
+      <p class="note-lede">高等数学讲到多元函数极值时,会给你一个由二阶偏导数排成的矩阵——Hessian。多数人考完就把它还给老师了。但这个矩阵在固体物理里过着第二重生活：它是晶格的力常数矩阵,对角化之后,里面装着晶体全部的振动方式。</p>
+      <h2>形状探测器</h2>
+      <p>一阶导数只回答"往哪边走会变高"，Hessian 回答的是"脚下这块地长什么样"。把函数在驻点附近做二阶泰勒展开，常数项和一次项都不见了，剩下的形状完全由 <code>½ xᵀHx</code> 决定：特征值全正,是山谷（极小）;全负,是山顶（极大）;有正有负,是鞍点——沿一个特征方向下坡,沿另一个上坡。二元函数课本里的判别式 <code>AC − B²</code>,不过是 2×2 Hessian 的行列式换了个写法。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-graph" aria-hidden="true"></i>2×2 的老朋友</h3>
+        <span class="formula">H = [[f_xx, f_xy], [f_xy, f_yy]],&nbsp;&nbsp;det H = f_xx·f_yy − f_xy²</span>
+        <p>det H &gt; 0 且 f_xx &gt; 0 → 极小；det H &gt; 0 且 f_xx &lt; 0 → 极大；det H &lt; 0 → 鞍点。这就是教材上那条"AC−B² 判别法"的真身。</p>
+      </div>
+      <h2>换到晶格里</h2>
+      <p>现在把函数换成晶体的势能面 U,自变量换成全体原子的位移。平衡位置正是驻点——一阶导数为零,于是原子间的相互作用在小振幅下完全由二阶导数刻画：<code>Φ_ij = ∂²U/∂u_i∂u_j</code>。这个矩阵有个新名字,力常数矩阵,但它就是 Hessian,一个原子有 3N 个自由度的巨型 Hessian。牛顿方程在它面前变成一个耦合振子系统——而解耦合振子系统,数学上就是一句话：对角化。</p>
+      <p>利用晶格的平移对称性做傅里叶变换,3N×3N 的大矩阵按波矢 k 分块成一族 3×3 的<strong>动力学矩阵</strong> D(k)。对每个 k 求特征值,开平方,得到频率 ω(k)——把 ω 随 k 的变化画出来,就是声子色散曲线。声学支、光学支、声速、比热、热导,全都从这条曲线里长出来。</p>
+      <div class="aside-card">
+        <h3><i class="ph ph-flow-arrow" aria-hidden="true"></i>一条流水线</h3>
+        <span class="formula">U 的 Hessian → 质量加权 → 傅里叶变换 → D(k) → 对角化 → ω(k) 声子谱</span>
+        <p>特征值必须非负,否则 ω 是虚数——那意味着晶格沿某个模式滑向更低能量：结构不稳定。判定极小值的老规矩,在这里判定一种晶体能否存在。</p>
+      </div>
+      <h2>为什么值得记住</h2>
+      <p>这是我最喜欢的那类事实：一页微积分,两个学科在用。做 MD 模拟时算出的振动谱,考试卷上判定极值的判别式,是同一个数学对象在不同海拔的投影。把工具学到"认得出它换了衣服"的程度,才算真的学会了。</p>
+
+      <div class="aside-card sources-card">
+        <h3><i class="ph ph-books" aria-hidden="true"></i>原始资料 Sources</h3>
+        <div class="source-list"><a href="https://phonopy.github.io/phonopy/formulation.html" target="_blank" rel="noreferrer">Phonopy · Dynamical matrix formulation</a><a href="https://phonopy.github.io/phonopy/setting-tags.html" target="_blank" rel="noreferrer">Phonopy · Eigenvalues and phonon frequencies</a></div>
+      </div>
+
+      <nav class="rooms" aria-label="相邻的房间">
+        <a class="room prev" href="materials.html"><span><i class="ph ph-arrow-left" aria-hidden="true"></i> 上一间</span><strong>01 · 高熵合金与裂纹尖端</strong></a>
+        <a class="room next" href="physics.html"><span>下一间 <i class="ph ph-arrow-right" aria-hidden="true"></i></span><strong>03 · 色禁闭：拉不开的力</strong></a>
+        <a class="room hub" href="../index.html#routes"><i class="ph ph-compass" aria-hidden="true"></i> 回到知识地图</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer>
+    <span>格物志 · 数学 Mathematics</span>
+    <span>键盘 ← → 可在房间之间移动</span>
+  </footer>
+
+  <script src="../assets/notes.js"></script>
+</body>
+</html>
