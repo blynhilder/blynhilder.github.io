@@ -100,6 +100,8 @@ function setupLiquidIsland() {
   const current = isTopic ? TOPICS[topicKey].name : "五展厅";
   const triggerId = "liquid-island-trigger";
   const sheetId = "liquid-control-center";
+  const sideTriggerId = "side-rail-trigger";
+  const sideSheetId = "side-rail-sheet";
 
   topbar.classList.add("liquid-island");
   topbar.innerHTML = `<button class="island-trigger" id="${triggerId}" type="button" aria-expanded="false" aria-controls="${sheetId}" aria-label="打开液态玻璃控制中心"><span class="island-dot" aria-hidden="true"></span><span class="island-brand">格物志</span><span class="island-current" id="island-current">${current}</span><span class="island-chevron" aria-hidden="true"><i class="ph ph-caret-down"></i></span></button>`;
@@ -118,76 +120,317 @@ function setupLiquidIsland() {
     <a class="liquid-action" href="story.html" data-sheet-close><i class="ph ph-scroll"></i><span>滚动长卷</span></a>
     <button class="liquid-action" type="button" data-open-search data-sheet-close><i class="ph ph-magnifying-glass"></i><span>搜索知识</span></button>`;
 
-  document.body.insertAdjacentHTML("beforeend", `<div class="liquid-sheet-backdrop" id="liquid-sheet-backdrop" aria-hidden="true"></div><section class="liquid-sheet" id="${sheetId}" role="dialog" aria-modal="true" aria-labelledby="liquid-sheet-title" aria-hidden="true" inert><div class="liquid-sheet-head" data-drag-surface><h2 id="liquid-sheet-title">控制中心</h2><span>Liquid Glass Navigation</span></div><div class="liquid-sheet-grid">${actions}</div><p class="liquid-sheet-hint">点击岛屿或空白处收起 · 也可以向上轻甩面板</p></section>`);
+  const sideItems = isTopic ? [
+    ["#chapters", "01", "主题分支", "四条路径", "ph-compass", "chapters"],
+    ["#topic-switcher", "02", "切换展厅", "五个房间", "ph-squares-four", "topic-switcher"],
+    [`${root}notes/${NOTE_PATHS[topicKey]}`, "03", "专题长读", NOTE_TITLES[topicKey], "ph-book-open-text", ""],
+    [`${root}index.html`, "04", "返回主页", "知识地图", "ph-house", ""]
+  ] : [
+    ["#routes", "01", "五大展厅", "二十条路线", "ph-door-open", "routes"],
+    ["#glass-atlas", "02", "材质图鉴", "玻璃的三层厚度", "ph-stack", "glass-atlas"],
+    ["#motion-lab", "03", "弹簧实验", "调节阻尼与响应", "ph-wave-sine", "motion-lab"],
+    ["#deep-dives", "04", "专题长读", "五份知识档案", "ph-book-open-text", "deep-dives"],
+    ["#notes", "05", "今日切片", "跨学科连接", "ph-intersect-three", "notes"]
+  ];
+  const sideLinks = sideItems.map(([href, index, title, detail, icon, section]) => `<a class="side-nav-link" href="${href}"${section ? ` data-section="${section}"` : ""} data-side-close><span class="side-nav-index">${index}</span><span class="side-nav-icon"><i class="ph ${icon}"></i></span><span class="side-nav-copy"><strong>${title}</strong><small>${detail}</small></span><i class="ph ph-arrow-right side-nav-arrow"></i></a>`).join("");
+
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="liquid-sheet-backdrop" id="liquid-sheet-backdrop" aria-hidden="true"></div>
+    <section class="liquid-sheet" id="${sheetId}" role="dialog" aria-modal="true" aria-labelledby="liquid-sheet-title" aria-hidden="true" inert>
+      <div class="liquid-sheet-head" data-drag-surface><h2 id="liquid-sheet-title">控制中心</h2><span>Liquid Glass Navigation</span></div>
+      <div class="liquid-sheet-grid">${actions}</div>
+      <p class="liquid-sheet-hint"><i class="ph ph-hand-swipe-down"></i> 从岛屿向下拉开 · 向上轻甩收起</p>
+    </section>
+    <button class="side-rail-trigger" id="${sideTriggerId}" type="button" aria-expanded="false" aria-controls="${sideSheetId}" aria-label="打开侧边章节轨道">
+      <span class="side-rail-copy"><small>Chapter rail</small><strong>侧拉导航</strong></span><i class="ph ph-caret-left"></i>
+    </button>
+    <div class="side-sheet-backdrop" id="side-sheet-backdrop" aria-hidden="true"></div>
+    <aside class="side-sheet" id="${sideSheetId}" role="dialog" aria-modal="true" aria-labelledby="side-sheet-title" aria-hidden="true" inert>
+      <header class="side-sheet-head" data-side-drag-surface>
+        <div><span>Index · 横向轨道</span><h2 id="side-sheet-title">沿章节侧行。</h2></div>
+        <button class="side-sheet-close" type="button" aria-label="收起侧边章节轨道" data-side-close><i class="ph ph-x"></i></button>
+      </header>
+      <nav class="side-nav" aria-label="章节快速导航">${sideLinks}</nav>
+      <footer class="side-sheet-foot"><span>Silver · Gold · Black · White</span><a href="${root}story.html" data-side-close>进入滚动长卷 <i class="ph ph-arrow-up-right"></i></a></footer>
+    </aside>`);
 
   const trigger = document.querySelector(`#${triggerId}`);
   const sheet = document.querySelector(`#${sheetId}`);
   const backdrop = document.querySelector("#liquid-sheet-backdrop");
-  let lastFocus = null;
-  let dragStartY = 0;
-  let dragLastY = 0;
-  let dragLastTime = 0;
-  let dragging = false;
+  const sideTrigger = document.querySelector(`#${sideTriggerId}`);
+  const sideSheet = document.querySelector(`#${sideSheetId}`);
+  const sideBackdrop = document.querySelector("#side-sheet-backdrop");
+  const clamp = value => Math.min(1, Math.max(0, value));
+  let sheetLastFocus = null;
+  let sideLastFocus = null;
+  let setSideOpen;
 
-  const setOpen = open => {
+  const setSheetOpen = (open, restoreFocus = true) => {
+    if (open) setSideOpen?.(false, false);
     document.body.classList.toggle("island-open", open);
     trigger.setAttribute("aria-expanded", String(open));
     trigger.setAttribute("aria-label", open ? "收起液态玻璃控制中心" : "打开液态玻璃控制中心");
+    sideTrigger.inert = open;
     sheet.setAttribute("aria-hidden", String(!open));
     backdrop.setAttribute("aria-hidden", String(!open));
     sheet.inert = !open;
     sheet.style.transform = "";
     sheet.style.opacity = "";
+    backdrop.style.opacity = "";
+    backdrop.style.backdropFilter = "";
+    backdrop.style.webkitBackdropFilter = "";
+    requestAnimationFrame(() => {
+      document.body.classList.remove("island-pulling");
+      document.documentElement.style.removeProperty("--sheet-progress");
+      document.documentElement.style.removeProperty("--sheet-lift");
+      document.documentElement.style.removeProperty("--sheet-scale");
+    });
     if (open) {
-      lastFocus = document.activeElement;
-      setTimeout(() => sheet.querySelector(".liquid-action")?.focus(), 180);
-    } else if (lastFocus instanceof HTMLElement && !lastFocus.matches("[data-sheet-close]")) {
-      lastFocus.focus();
+      sheetLastFocus = document.activeElement;
+      setTimeout(() => sheet.querySelector(".liquid-action")?.focus(), 320);
+    } else if (restoreFocus && sheetLastFocus instanceof HTMLElement && !sheetLastFocus.matches("[data-sheet-close]")) {
+      sheetLastFocus.focus();
     }
   };
 
-  trigger.addEventListener("click", () => setOpen(!document.body.classList.contains("island-open")));
-  backdrop.addEventListener("click", () => setOpen(false));
-  sheet.querySelectorAll("[data-sheet-close]").forEach(action => action.addEventListener("click", () => setOpen(false)));
-  addEventListener("keydown", event => { if (event.key === "Escape" && document.body.classList.contains("island-open")) setOpen(false); });
+  setSideOpen = (open, restoreFocus = true) => {
+    if (open) setSheetOpen(false, false);
+    document.body.classList.toggle("side-open", open);
+    sideTrigger.setAttribute("aria-expanded", String(open));
+    sideTrigger.setAttribute("aria-label", open ? "收起侧边章节轨道" : "打开侧边章节轨道");
+    sideTrigger.inert = open;
+    sideSheet.setAttribute("aria-hidden", String(!open));
+    sideBackdrop.setAttribute("aria-hidden", String(!open));
+    sideSheet.inert = !open;
+    sideSheet.style.transform = "";
+    sideSheet.style.opacity = "";
+    sideBackdrop.style.opacity = "";
+    sideBackdrop.style.backdropFilter = "";
+    sideBackdrop.style.webkitBackdropFilter = "";
+    requestAnimationFrame(() => {
+      document.body.classList.remove("side-pulling");
+      document.documentElement.style.removeProperty("--side-progress");
+      document.documentElement.style.removeProperty("--side-trigger-shift");
+    });
+    if (open) {
+      sideLastFocus = document.activeElement;
+      setTimeout(() => sideSheet.querySelector(".side-sheet-close")?.focus(), 340);
+    } else if (restoreFocus && sideLastFocus instanceof HTMLElement && !sideLastFocus.matches("[data-side-close]")) {
+      sideLastFocus.focus();
+    }
+  };
 
+  let suppressSheetClick = false;
+  let sheetPull = null;
+  trigger.addEventListener("pointerdown", event => {
+    sheetPull = { x: event.clientX, y: event.clientY, time: performance.now(), open: document.body.classList.contains("island-open"), progress: document.body.classList.contains("island-open") ? 1 : 0, active: false };
+    trigger.setPointerCapture?.(event.pointerId);
+  });
+  trigger.addEventListener("pointermove", event => {
+    if (!sheetPull) return;
+    const dx = event.clientX - sheetPull.x;
+    const dy = event.clientY - sheetPull.y;
+    if (!sheetPull.active && (Math.abs(dy) < 5 || Math.abs(dy) < Math.abs(dx))) return;
+    if (!sheetPull.open && dy < 0) return;
+    sheetPull.active = true;
+    suppressSheetClick = true;
+    sheetPull.progress = sheetPull.open ? clamp(1 + dy / 150) : clamp(dy / 150);
+    document.documentElement.style.setProperty("--sheet-progress", sheetPull.progress.toFixed(4));
+    document.documentElement.style.setProperty("--sheet-lift", `${(sheetPull.progress * 4).toFixed(2)}px`);
+    document.documentElement.style.setProperty("--sheet-scale", (1 + sheetPull.progress * .018).toFixed(4));
+    sheet.style.transform = `translate3d(-50%, ${(-30 + sheetPull.progress * 30).toFixed(2)}px, 0) scale(${(.935 + sheetPull.progress * .065).toFixed(4)})`;
+    sheet.style.opacity = sheetPull.progress.toFixed(4);
+    backdrop.style.opacity = String(sheetPull.progress * .96);
+    backdrop.style.backdropFilter = `blur(${(sheetPull.progress * 15).toFixed(2)}px) saturate(138%)`;
+    backdrop.style.webkitBackdropFilter = backdrop.style.backdropFilter;
+    document.body.classList.add("island-pulling");
+  });
+  const finishSheetPull = (event, cancelled = false) => {
+    if (!sheetPull) return;
+    const dy = event.clientY - sheetPull.y;
+    const velocity = dy / Math.max(16, performance.now() - sheetPull.time);
+    const active = sheetPull.active;
+    const open = cancelled ? sheetPull.open : sheetPull.open ? sheetPull.progress > .62 && velocity > -.42 : sheetPull.progress > .36 || velocity > .42;
+    sheetPull = null;
+    if (active) {
+      setSheetOpen(open);
+      setTimeout(() => { suppressSheetClick = false; }, 220);
+    }
+  };
+  trigger.addEventListener("pointerup", event => finishSheetPull(event));
+  trigger.addEventListener("pointercancel", event => finishSheetPull(event, true));
+  addEventListener("pointerup", event => finishSheetPull(event));
+  addEventListener("pointercancel", event => finishSheetPull(event, true));
+  trigger.addEventListener("click", () => {
+    if (suppressSheetClick) return;
+    setSheetOpen(!document.body.classList.contains("island-open"));
+  });
+
+  let sheetDrag = null;
   sheet.addEventListener("pointerdown", event => {
     if (!event.target.closest("[data-drag-surface]")) return;
-    dragging = true;
-    dragStartY = dragLastY = event.clientY;
-    dragLastTime = performance.now();
+    sheetDrag = { y: event.clientY, time: performance.now() };
+    sheet.classList.add("is-dragging");
     sheet.setPointerCapture?.(event.pointerId);
   });
   sheet.addEventListener("pointermove", event => {
-    if (!dragging) return;
-    const delta = Math.min(0, event.clientY - dragStartY);
-    sheet.style.transform = `translate(-50%, ${delta}px) scale(${1 + delta / 1800})`;
-    sheet.style.opacity = String(Math.max(.42, 1 + delta / 220));
-    dragLastY = event.clientY;
-    dragLastTime = performance.now();
+    if (!sheetDrag) return;
+    const delta = Math.min(0, event.clientY - sheetDrag.y);
+    sheet.style.transform = `translate3d(-50%, ${delta}px, 0) scale(${1 + delta / 1800})`;
+    sheet.style.opacity = String(Math.max(.34, 1 + delta / 220));
   });
-  const finishDrag = event => {
-    if (!dragging) return;
-    const delta = event.clientY - dragStartY;
-    const elapsed = Math.max(16, performance.now() - dragLastTime);
-    const velocity = (event.clientY - dragLastY) / elapsed;
-    dragging = false;
-    if (delta < -64 || velocity < -.45) setOpen(false);
-    else { sheet.style.transform = ""; sheet.style.opacity = ""; }
+  const finishSheetDrag = (event, cancelled = false) => {
+    if (!sheetDrag) return;
+    const delta = event.clientY - sheetDrag.y;
+    const velocity = delta / Math.max(16, performance.now() - sheetDrag.time);
+    sheetDrag = null;
+    sheet.classList.remove("is-dragging");
+    if (!cancelled && (delta < -58 || velocity < -.38)) setSheetOpen(false);
+    else requestAnimationFrame(() => { sheet.style.transform = ""; sheet.style.opacity = ""; });
   };
-  sheet.addEventListener("pointerup", finishDrag);
-  sheet.addEventListener("pointercancel", finishDrag);
+  sheet.addEventListener("pointerup", event => finishSheetDrag(event));
+  sheet.addEventListener("pointercancel", event => finishSheetDrag(event, true));
+  addEventListener("pointerup", event => finishSheetDrag(event));
+  addEventListener("pointercancel", event => finishSheetDrag(event, true));
+
+  let suppressSideClick = false;
+  let sidePull = null;
+  sideTrigger.addEventListener("pointerdown", event => {
+    sidePull = { x: event.clientX, y: event.clientY, time: performance.now(), open: document.body.classList.contains("side-open"), progress: document.body.classList.contains("side-open") ? 1 : 0, distance: sideSheet.getBoundingClientRect().width + 34, active: false };
+    sideTrigger.setPointerCapture?.(event.pointerId);
+  });
+  sideTrigger.addEventListener("pointermove", event => {
+    if (!sidePull) return;
+    const dx = event.clientX - sidePull.x;
+    const dy = event.clientY - sidePull.y;
+    if (!sidePull.active && (Math.abs(dx) < 5 || Math.abs(dx) < Math.abs(dy))) return;
+    if (!sidePull.open && dx > 0) return;
+    sidePull.active = true;
+    suppressSideClick = true;
+    sidePull.progress = sidePull.open ? clamp(1 - dx / 150) : clamp(-dx / 150);
+    document.documentElement.style.setProperty("--side-progress", sidePull.progress.toFixed(4));
+    document.documentElement.style.setProperty("--side-trigger-shift", `${(sidePull.progress * 16).toFixed(2)}px`);
+    sideSheet.style.transform = `translate3d(${((1 - sidePull.progress) * sidePull.distance).toFixed(2)}px, 0, 0)`;
+    sideSheet.style.opacity = sidePull.progress.toFixed(4);
+    sideBackdrop.style.opacity = String(sidePull.progress * .96);
+    sideBackdrop.style.backdropFilter = `blur(${(sidePull.progress * 13).toFixed(2)}px) saturate(124%)`;
+    sideBackdrop.style.webkitBackdropFilter = sideBackdrop.style.backdropFilter;
+    document.body.classList.add("side-pulling");
+  });
+  const finishSidePull = (event, cancelled = false) => {
+    if (!sidePull) return;
+    const dx = event.clientX - sidePull.x;
+    const velocity = dx / Math.max(16, performance.now() - sidePull.time);
+    const active = sidePull.active;
+    const open = cancelled ? sidePull.open : sidePull.open ? sidePull.progress > .62 && velocity < .42 : sidePull.progress > .36 || velocity < -.42;
+    sidePull = null;
+    if (active) {
+      setSideOpen(open);
+      setTimeout(() => { suppressSideClick = false; }, 220);
+    }
+  };
+  sideTrigger.addEventListener("pointerup", event => finishSidePull(event));
+  sideTrigger.addEventListener("pointercancel", event => finishSidePull(event, true));
+  addEventListener("pointerup", event => finishSidePull(event));
+  addEventListener("pointercancel", event => finishSidePull(event, true));
+  sideTrigger.addEventListener("click", () => {
+    if (suppressSideClick) return;
+    setSideOpen(!document.body.classList.contains("side-open"));
+  });
+
+  let sideDrag = null;
+  sideSheet.addEventListener("pointerdown", event => {
+    if (!event.target.closest("[data-side-drag-surface]")) return;
+    sideDrag = { x: event.clientX, time: performance.now() };
+    sideSheet.classList.add("is-dragging");
+    sideSheet.setPointerCapture?.(event.pointerId);
+  });
+  sideSheet.addEventListener("pointermove", event => {
+    if (!sideDrag) return;
+    const delta = Math.max(0, event.clientX - sideDrag.x);
+    sideSheet.style.transform = `translate3d(${delta}px, 0, 0)`;
+  });
+  const finishSideDrag = (event, cancelled = false) => {
+    if (!sideDrag) return;
+    const delta = event.clientX - sideDrag.x;
+    const velocity = delta / Math.max(16, performance.now() - sideDrag.time);
+    sideDrag = null;
+    sideSheet.classList.remove("is-dragging");
+    if (!cancelled && (delta > 62 || velocity > .4)) setSideOpen(false);
+    else requestAnimationFrame(() => { sideSheet.style.transform = ""; });
+  };
+  sideSheet.addEventListener("pointerup", event => finishSideDrag(event));
+  sideSheet.addEventListener("pointercancel", event => finishSideDrag(event, true));
+  addEventListener("pointerup", event => finishSideDrag(event));
+  addEventListener("pointercancel", event => finishSideDrag(event, true));
+
+  backdrop.addEventListener("click", () => setSheetOpen(false));
+  sideBackdrop.addEventListener("click", () => setSideOpen(false));
+  sheet.querySelectorAll("[data-sheet-close]").forEach(action => action.addEventListener("click", () => setSheetOpen(false)));
+  sideSheet.querySelectorAll("[data-side-close]").forEach(action => action.addEventListener("click", () => setSideOpen(false)));
+  const trapFocus = (event, container) => {
+    const focusable = [...container.querySelectorAll("a[href], button:not([disabled])")].filter(element => !element.inert && getComputedStyle(element).display !== "none");
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!container.contains(document.activeElement)) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  addEventListener("keydown", event => {
+    if (event.key === "Tab" && document.body.classList.contains("island-open")) trapFocus(event, sheet);
+    if (event.key === "Tab" && document.body.classList.contains("side-open")) trapFocus(event, sideSheet);
+    if (event.key === "Escape" && document.body.classList.contains("island-open")) setSheetOpen(false);
+    if (event.key === "Escape" && document.body.classList.contains("side-open")) setSideOpen(false);
+  });
 
   if (!isTopic) {
     const labels = [["routes", "五展厅"], ["glass-atlas", "材质图鉴"], ["motion-lab", "调参台"], ["deep-dives", "专题长读"], ["notes", "今日切片"]];
     let ticking = false;
     const updateLabel = () => {
       let label = "五展厅";
-      labels.forEach(([id, name]) => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 170) label = name; });
+      let activeId = "routes";
+      labels.forEach(([id, name]) => {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top < 170) { label = name; activeId = id; }
+      });
       document.querySelector("#island-current").textContent = label;
+      document.querySelectorAll(".side-nav-link[data-section]").forEach(link => {
+        const active = link.dataset.section === activeId;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
       ticking = false;
     };
     addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(updateLabel); } }, { passive: true });
+    updateLabel();
+  } else {
+    const topicSections = ["chapters", "topic-switcher"];
+    let topicTicking = false;
+    const updateTopicRail = () => {
+      let activeId = "chapters";
+      topicSections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top < 170) activeId = id;
+      });
+      document.querySelectorAll(".side-nav-link[data-section]").forEach(link => {
+        const active = link.dataset.section === activeId;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+      topicTicking = false;
+    };
+    addEventListener("scroll", () => { if (!topicTicking) { topicTicking = true; requestAnimationFrame(updateTopicRail); } }, { passive: true });
+    updateTopicRail();
   }
 }
 
