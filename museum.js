@@ -474,24 +474,263 @@ function setupSearch() {
   const input = document.querySelector("#search-input");
   const results = document.querySelector("#search-results");
   if (!dialog || !input || !results) return;
+  const card = dialog.querySelector(".search-card");
+  const inputWrap = dialog.querySelector(".search-input-wrap");
   const noteRoot = document.body.dataset.topic ? "../notes/" : "notes/";
   const entries = Object.entries(TOPICS).flatMap(([key, topic]) => [
     { label: topic.name, meta: topic.en, href: `${currentBase()}${TOPIC_PATHS[key]}` },
     ...Object.entries(topic.branches).map(([branchKey, branch]) => ({ label: `${topic.name} · ${branch.label}`, meta: branch.title, href: `${currentBase()}${TOPIC_PATHS[key]}#${branchKey}` })),
     { label: `${topic.name} · 专题长读`, meta: NOTE_TITLES[key], href: `${noteRoot}${NOTE_PATHS[key]}` }
   ]);
-  const render = value => {
-    const query = value.trim().toLowerCase();
-    const matches = entries.filter(item => !query || `${item.label}${item.meta}`.toLowerCase().includes(query)).slice(0, 9);
-    results.innerHTML = matches.length ? matches.map(item => `<a class="search-result" href="${item.href}"><strong>${item.label}</strong><span>${item.meta}</span><i class="ph ph-arrow-up-right"></i></a>`).join("") : `<div class="search-empty">没有找到，试试“实验”“网络”或“文字”。</div>`;
+
+  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  const compactNumber = value => new Intl.NumberFormat("zh-CN", { notation: "compact", maximumFractionDigits: 1 }).format(value || 0);
+  const githubSearchURL = value => `https://github.com/search?q=${encodeURIComponent(value.trim())}&type=repositories`;
+  const storageKey = value => `gewu-github-search:${value.trim().toLowerCase()}`;
+  const readCache = value => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(storageKey(value)));
+      return cached && Date.now() - cached.time < 10 * 60 * 1000 ? cached.data : null;
+    } catch {
+      return null;
+    }
   };
-  const open = () => { dialog.classList.add("is-open"); dialog.setAttribute("aria-hidden", "false"); document.body.classList.add("menu-open"); render(""); setTimeout(() => input.focus(), 80); };
-  const close = () => { dialog.classList.remove("is-open"); dialog.setAttribute("aria-hidden", "true"); document.body.classList.remove("menu-open"); };
+  const writeCache = (value, data) => {
+    try {
+      sessionStorage.setItem(storageKey(value), JSON.stringify({ time: Date.now(), data }));
+    } catch {
+      // Search still works when storage is unavailable.
+    }
+  };
+
+  input.placeholder = "搜索格物志与 GitHub…";
+  dialog.setAttribute("aria-label", "搜索格物志与 GitHub");
+  dialog.setAttribute("inert", "");
+  results.setAttribute("aria-live", "polite");
+  inputWrap?.insertAdjacentHTML("afterend", `
+    <div class="search-toolbar">
+      <div class="search-scopes" role="tablist" aria-label="搜索范围">
+        <button class="search-scope is-active" type="button" role="tab" aria-selected="true" data-search-scope="all">综合</button>
+        <button class="search-scope" type="button" role="tab" aria-selected="false" data-search-scope="local">格物志</button>
+        <button class="search-scope" type="button" role="tab" aria-selected="false" data-search-scope="github"><i class="ph ph-github-logo"></i> GitHub</button>
+      </div>
+      <span class="search-hint"><kbd>⌘</kbd><kbd>K</kbd></span>
+    </div>`);
+  card?.insertAdjacentHTML("beforeend", `
+    <footer class="search-footer">
+      <span><i class="ph ph-shield-check"></i> GitHub 公共仓库 · 不暴露访问令牌</span>
+      <span>↑↓ 选择 · Enter 打开</span>
+    </footer>`);
+
+  let scope = "all";
+  let githubTimer = 0;
+  let controller = null;
+  let requestSerial = 0;
+  let activeIndex = -1;
+  let previousFocus = null;
+  let githubState = { query: "", status: "idle", items: [], total: 0 };
+
+  const localMatches = value => {
+    const query = value.trim().toLowerCase();
+    return entries
+      .filter(item => !query || `${item.label}${item.meta}`.toLowerCase().includes(query))
+      .slice(0, query ? 6 : 3);
+  };
+
+  const localMarkup = value => {
+    const matches = localMatches(value);
+    if (!matches.length) return `
+      <section class="search-section">
+        <div class="search-section-head"><span>格物志</span><small>0 个匹配</small></div>
+        <div class="search-empty search-empty-compact">本站暂时没有这个概念，看看 GitHub 上有没有新的线索。</div>
+      </section>`;
+    return `
+      <section class="search-section">
+        <div class="search-section-head"><span>格物志</span><small>${value.trim() ? `${matches.length} 个匹配` : "推荐入口"}</small></div>
+        <div class="search-result-list">${matches.map(item => `
+          <a class="search-result search-result-local" href="${item.href}">
+            <span class="search-result-icon"><i class="ph ph-book-open-text"></i></span>
+            <span class="search-result-copy"><strong>${escapeHTML(item.label)}</strong><small>${escapeHTML(item.meta)}</small></span>
+            <i class="ph ph-arrow-up-right search-result-arrow"></i>
+          </a>`).join("")}</div>
+      </section>`;
+  };
+
+  const githubMarkup = value => {
+    const query = value.trim();
+    const allURL = githubSearchURL(query);
+    if (!query) return `
+      <section class="search-section search-section-github">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small>公共知识仓库</small></div>
+        <div class="github-search-prompt"><span class="github-search-orbit"><i class="ph ph-git-branch"></i></span><div><strong>把 GitHub 也变成一座展厅</strong><p>输入两个以上字符，仓库结果会在这里丝滑展开。</p></div></div>
+      </section>`;
+    if (query.length < 2) return `
+      <section class="search-section search-section-github">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small>继续输入</small></div>
+        <div class="search-empty search-empty-compact">再输入一个字符，就开始连接 GitHub。</div>
+      </section>`;
+    if (githubState.query !== query || githubState.status === "loading") return `
+      <section class="search-section search-section-github is-loading">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small><i class="ph ph-spinner-gap search-spinner"></i> 正在同步</small></div>
+        <div class="search-skeletons" aria-label="正在搜索 GitHub"><i></i><i></i><i></i></div>
+      </section>`;
+    if (githubState.status === "error") return `
+      <section class="search-section search-section-github">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small>连接受限</small></div>
+        <a class="github-fallback" href="${allURL}" target="_blank" rel="noreferrer"><span><strong>继续在 GitHub 搜索“${escapeHTML(query)}”</strong><small>公开接口可能暂时达到频率限制</small></span><i class="ph ph-arrow-up-right"></i></a>
+      </section>`;
+    if (!githubState.items.length) return `
+      <section class="search-section search-section-github">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small>0 个匹配</small></div>
+        <a class="github-fallback" href="${allURL}" target="_blank" rel="noreferrer"><span><strong>换一种方式在 GitHub 继续找</strong><small>查看完整搜索与更多筛选条件</small></span><i class="ph ph-arrow-up-right"></i></a>
+      </section>`;
+    return `
+      <section class="search-section search-section-github">
+        <div class="search-section-head"><span><i class="ph ph-github-logo"></i> GitHub</span><small>约 ${compactNumber(githubState.total)} 个公共仓库</small></div>
+        <div class="search-result-list">${githubState.items.map(repo => `
+          <a class="search-result search-result-github" href="${escapeHTML(repo.url)}" target="_blank" rel="noreferrer">
+            <img class="search-result-avatar" src="${escapeHTML(repo.avatar)}" alt="" width="38" height="38" loading="lazy">
+            <span class="search-result-copy">
+              <strong>${escapeHTML(repo.name)}</strong>
+              <small>${escapeHTML(repo.description || "这个仓库还没有简介。")}</small>
+              <span class="search-result-meta">${repo.language ? `<em><i class="ph ph-code"></i>${escapeHTML(repo.language)}</em>` : ""}<em><i class="ph ph-star"></i>${compactNumber(repo.stars)}</em><em>${escapeHTML(repo.owner)}</em></span>
+            </span>
+            <i class="ph ph-arrow-up-right search-result-arrow"></i>
+          </a>`).join("")}</div>
+        <a class="search-all-github" href="${allURL}" target="_blank" rel="noreferrer">在 GitHub 查看全部结果 <i class="ph ph-arrow-right"></i></a>
+      </section>`;
+  };
+
+  const syncActiveResult = () => {
+    const links = [...results.querySelectorAll("a.search-result, a.github-fallback, a.search-all-github")];
+    if (!links.length) {
+      activeIndex = -1;
+      return;
+    }
+    activeIndex = Math.min(activeIndex, links.length - 1);
+    links.forEach((link, index) => link.classList.toggle("is-keyboard-active", index === activeIndex));
+    if (activeIndex >= 0) links[activeIndex].scrollIntoView({ block: "nearest" });
+  };
+
+  const render = () => {
+    const value = input.value;
+    results.innerHTML = `${scope !== "github" ? localMarkup(value) : ""}${scope !== "local" ? githubMarkup(value) : ""}`;
+    dialog.toggleAttribute("data-github-loading", githubState.status === "loading" && value.trim().length > 1 && scope !== "local");
+    syncActiveResult();
+  };
+
+  const fetchGithub = async value => {
+    const query = value.trim();
+    const serial = ++requestSerial;
+    const cached = readCache(query);
+    if (cached) {
+      githubState = { query, status: "success", ...cached };
+      render();
+      return;
+    }
+    controller?.abort();
+    controller = new AbortController();
+    try {
+      const response = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=6`, {
+        headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`GitHub search returned ${response.status}`);
+      const payload = await response.json();
+      if (serial !== requestSerial || input.value.trim() !== query) return;
+      const data = {
+        total: payload.total_count || 0,
+        items: (payload.items || []).map(repo => ({
+          name: repo.full_name,
+          owner: repo.owner?.login,
+          avatar: repo.owner?.avatar_url,
+          description: repo.description,
+          language: repo.language,
+          stars: repo.stargazers_count,
+          url: repo.html_url
+        }))
+      };
+      writeCache(query, data);
+      githubState = { query, status: "success", ...data };
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      if (serial !== requestSerial) return;
+      githubState = { query, status: "error", items: [], total: 0 };
+    }
+    render();
+  };
+
+  const update = () => {
+    const query = input.value.trim();
+    activeIndex = -1;
+    clearTimeout(githubTimer);
+    controller?.abort();
+    if (scope !== "local" && query.length >= 2) {
+      const cached = readCache(query);
+      githubState = cached ? { query, status: "success", ...cached } : { query, status: "loading", items: [], total: 0 };
+      render();
+      if (!cached) githubTimer = setTimeout(() => fetchGithub(query), 380);
+    } else {
+      githubState = { query, status: "idle", items: [], total: 0 };
+      render();
+    }
+  };
+
+  const open = () => {
+    previousFocus = document.activeElement;
+    dialog.classList.add("is-open");
+    dialog.setAttribute("aria-hidden", "false");
+    dialog.removeAttribute("inert");
+    document.body.classList.add("menu-open");
+    update();
+    setTimeout(() => input.focus(), 80);
+  };
+  const close = () => {
+    clearTimeout(githubTimer);
+    controller?.abort();
+    dialog.classList.remove("is-open");
+    dialog.setAttribute("aria-hidden", "true");
+    dialog.setAttribute("inert", "");
+    document.body.classList.remove("menu-open");
+    previousFocus?.focus?.();
+  };
+
   document.querySelectorAll("[data-open-search]").forEach(button => button.addEventListener("click", open));
   dialog.querySelector("[data-close-search]")?.addEventListener("click", close);
   dialog.addEventListener("click", event => { if (event.target === dialog) close(); });
-  input.addEventListener("input", () => render(input.value));
-  addEventListener("keydown", event => { if (event.key === "Escape") close(); if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); open(); } });
+  input.addEventListener("input", update);
+  dialog.querySelectorAll("[data-search-scope]").forEach(button => button.addEventListener("click", () => {
+    scope = button.dataset.searchScope;
+    dialog.querySelectorAll("[data-search-scope]").forEach(item => {
+      const selected = item === button;
+      item.classList.toggle("is-active", selected);
+      item.setAttribute("aria-selected", String(selected));
+    });
+    update();
+    input.focus();
+  }));
+  input.addEventListener("keydown", event => {
+    if (!["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) return;
+    const links = [...results.querySelectorAll("a.search-result, a.github-fallback, a.search-all-github")];
+    if (!links.length) return;
+    if (event.key === "Enter") {
+      if (activeIndex < 0) activeIndex = 0;
+      links[activeIndex]?.click();
+    } else {
+      activeIndex = event.key === "ArrowDown"
+        ? (activeIndex + 1) % links.length
+        : (activeIndex <= 0 ? links.length - 1 : activeIndex - 1);
+      syncActiveResult();
+    }
+    event.preventDefault();
+  });
+  addEventListener("keydown", event => {
+    if (event.key === "Escape" && dialog.classList.contains("is-open")) close();
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      open();
+    }
+  });
 }
 
 function setupPortals() {
